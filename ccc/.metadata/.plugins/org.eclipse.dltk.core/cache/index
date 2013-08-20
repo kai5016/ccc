@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<cache:CacheIndex xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:cache="http://eclipse.org/dltk/cache_model" lastIndex="1598" environment="org.eclipse.dltk.core.environment.localEnvironment">
+<cache:CacheIndex xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:cache="http://eclipse.org/dltk/cache_model" lastIndex="1600" environment="org.eclipse.dltk.core.environment.localEnvironment">
   <entries path="C:/Ruby193/lib/ruby/site_ruby/1.9.1/rubygems/commands/build_command.rb" timestamp="1373097182000" lastAccessTime="1376899860231">
     <attributes name="indexed" location="2838196607/3823870053/205.idx"/>
   </entries>
@@ -2395,12 +2395,13 @@
   <entries path="C:/Ruby193/lib/ruby/1.9.1/i386-mingw32/rbconfig.rb" timestamp="1373097182000" lastAccessTime="1376899860984">
     <attributes name="indexed" location="2838196607/1515403711/1595.idx"/>
   </entries>
-  <entries path="C:/AptanaStudio3/workspace/ccc/CharacterCodeCrawler" timestamp="1376899546404" lastAccessTime="1376900118060">
-    <attributes name=".dltk.core.archive.cache.lastaccess" location="2838196607/2578986175/159.idx"/>
-  </entries>
   <entries path="C:/Ruby193/lib/ruby/site_ruby/1.9.1/rubygems/defaults/operating_system.rb.20130809014752" timestamp="1373097182000" lastAccessTime="1376899851551"/>
   <entries path="C:/Ruby193/lib/ruby/1.9.1/rubygems/ssl_certs" timestamp="1375979832592" lastAccessTime="1376899854784"/>
   <entries path="C:/Ruby193/lib/ruby/1.9.1/rake/lib" timestamp="1375979831965" lastAccessTime="1376899853292"/>
   <entries path="C:/Ruby193/lib/ruby/1.9.1/rdoc/generator/template" timestamp="1375979832044" lastAccessTime="1376899853425"/>
   <entries path="C:/Ruby193/lib/ruby/1.9.1/irb/lc/help-message" timestamp="1305684578000" lastAccessTime="1376899854709"/>
+  <entries path="C:/AptanaStudio3/workspace/ccc/CharacterCodeCrawler/Crawler.rb" timestamp="1376900190921" lastAccessTime="1376900191485"/>
+  <entries path="C:/AptanaStudio3/workspace/ccc/CharacterCodeCrawler" timestamp="1377008700051" lastAccessTime="1377009844266">
+    <attributes name=".dltk.core.archive.cache.lastaccess" location="2838196607/2578986175/1599.idx"/>
+  </entries>
 </cache:CacheIndex>
