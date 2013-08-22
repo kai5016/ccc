@@ -109,3 +109,77 @@ java.lang.NullPointerException
 	at com.aptana.scripting.internal.model.BundleMonitor.beginMonitoring(BundleMonitor.java:96)
 	at com.aptana.scripting.ScriptingActivator$1.run(ScriptingActivator.java:114)
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:54)
+
+!ENTRY org.eclipse.dltk.core 4 0 2013-08-20 23:56:32.886
+!MESSAGE Failed to append type name to field
+!STACK 1
+org.eclipse.dltk.core.ModelException: @char_code [in PageInfo.rb [in <default> [in <project root> [in CharacterCodeCrawler]]]] は存在しません
+	at org.eclipse.dltk.internal.core.ModelElement.newNotPresentException(ModelElement.java:258)
+	at org.eclipse.dltk.internal.core.ModelElement.openWhenClosed(ModelElement.java:196)
+	at org.eclipse.dltk.internal.core.ModelElement.getElementInfo(ModelElement.java:171)
+	at org.eclipse.dltk.internal.core.ModelElement.getElementInfo(ModelElement.java:153)
+	at org.eclipse.dltk.internal.core.SourceField.getType(SourceField.java:59)
+	at org.eclipse.dltk.ui.ScriptElementLabels.getFieldLabel(ScriptElementLabels.java:819)
+	at org.eclipse.dltk.ui.ScriptElementLabels.getElementLabel(ScriptElementLabels.java:571)
+	at org.eclipse.dltk.ruby.internal.ui.RubyUILanguageToolkit$1.getElementLabel(RubyUILanguageToolkit.java:37)
+	at org.eclipse.dltk.ui.ScriptElementLabels.getElementLabel(ScriptElementLabels.java:527)
+	at org.eclipse.dltk.ui.ScriptElementLabels$2.getElementLabel(ScriptElementLabels.java:387)
+	at org.eclipse.dltk.internal.ui.text.hover.DocumentationHover$1.getTitle(DocumentationHover.java:207)
+	at org.eclipse.dltk.internal.ui.text.hover.DocumentationHover.getHoverInfo(DocumentationHover.java:153)
+	at org.eclipse.dltk.internal.ui.text.hover.AbstractScriptEditorTextHover.getHoverInfo(AbstractScriptEditorTextHover.java:174)
+	at org.eclipse.dltk.internal.ui.text.hover.BestMatchHover.getHoverInfo(BestMatchHover.java:117)
+	at org.eclipse.dltk.internal.ui.text.hover.EditorTextHoverProxy.getHoverInfo(EditorTextHoverProxy.java:78)
+	at org.eclipse.jface.text.TextViewerHoverManager$4.run(TextViewerHoverManager.java:168)
+!SUBENTRY 1 org.eclipse.dltk.core 4 969 2013-08-20 23:56:32.887
+!MESSAGE @char_code [in PageInfo.rb [in <default> [in <project root> [in CharacterCodeCrawler]]]] は存在しません
+!SESSION 2013-08-22 22:48:54.944 -----------------------------------------------
+eclipse.buildId=3.4.2.201308081805
+java.version=1.6.0_24
+java.vendor=Sun Microsystems Inc.
+BootLoader constants: OS=win32, ARCH=x86, WS=win32, NL=ja_JP
+Command-line arguments:  -os win32 -ws win32 -arch x86
+
+!ENTRY org.eclipse.jface 2 0 2013-08-22 22:49:05.662
+!MESSAGE キーバインドの競合が発生しました。 通常のアクセラレーター操作を妨げる可能性があります。
+!SUBENTRY 1 org.eclipse.jface 2 0 2013-08-22 22:49:05.662
+!MESSAGE CTRL+SHIFT+D の競合が発生しました:
+Binding(CTRL+SHIFT+D,
+	ParameterizedCommand(Command(org.radrails.rails.ui.command.debug.server,サーバーのデバッグ,
+		,
+		Category(org.radrails.rails.ui.category,Rails,null,true),
+		org.radrails.rails.internal.ui.commands.DebugServerHandler,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+Binding(CTRL+SHIFT+D,
+	ParameterizedCommand(Command(com.aptana.ide.syncing.ui.commands.download,ダウンロード...,
+		,
+		Category(com.aptana.ide.syncing.ui.commands.category,ファイル転送,File Transfer Commands,true),
+		com.aptana.ide.syncing.ui.handlers.DownloadHandler,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+!SUBENTRY 1 org.eclipse.jface 2 0 2013-08-22 22:49:05.662
+!MESSAGE CTRL+SHIFT+U の競合が発生しました:
+Binding(CTRL+SHIFT+U,
+	ParameterizedCommand(Command(org.eclipse.jdt.ui.edit.text.java.search.occurrences.in.file.quickMenu,ファイル・クイック・メニュー内での出現箇所を表示,
+		ファイル・クイック・メニュー内での出現箇所を表示します,
+		Category(org.eclipse.search.ui.category.search,検索,コマンド・カテゴリーを検索します,true),
+		,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+Binding(CTRL+SHIFT+U,
+	ParameterizedCommand(Command(com.aptana.ide.syncing.ui.commands.upload,アップロード...,
+		,
+		Category(com.aptana.ide.syncing.ui.commands.category,ファイル転送,File Transfer Commands,true),
+		com.aptana.ide.syncing.ui.handlers.UploadHandler,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+
+!ENTRY org.eclipse.ui 4 0 2013-08-22 22:52:45.555
+!MESSAGE 未処理のイベント・ループ例外
+!STACK 0
+org.jruby.exceptions.RaiseException: (Errno::EINVAL) =::
+	at org.jruby.RubyHash.replace(org/jruby/RubyHash.java:1623)

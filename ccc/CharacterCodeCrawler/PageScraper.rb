@@ -1,0 +1,2 @@
+class PageScraper
+end

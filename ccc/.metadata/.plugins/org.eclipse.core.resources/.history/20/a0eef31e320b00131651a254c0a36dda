@@ -9,10 +9,6 @@ class Crawler
       # タイトルの取得
       title = page.doc.xpath("//head/title/text()").first.to_s if page.doc
       puts title
-      # リンクの URL のリストを取得
-      page.links().each {|link|
-        puts "link," + url.to_s + "," + link.to_s
-      }
     end
   end
 end
