@@ -1,0 +1,11 @@
+require 'mongo'
+
+class FetchUrlListDao
+  #データベースと接続
+  connection = Mongo::Connection.new
+  #connection = Mongo::Connection.new('localhost');
+  #connection = Mongo::Connection.new('localhost'27017);
+   
+  puts 'データベース一覧'
+  puts connection.database_names
+end

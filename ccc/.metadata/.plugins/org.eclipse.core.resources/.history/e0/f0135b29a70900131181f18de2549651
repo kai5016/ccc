@@ -1,5 +1,0 @@
-class PageInfo
-  def setName (str)
-    @name = str
-  end
-end

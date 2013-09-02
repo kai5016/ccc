@@ -1,0 +1,11 @@
+class PageInfo
+  attr_accessor :url, :char_code, :name, :title, :link_list
+
+  def initialize (url, char_code, name, link_list)
+    @url = url
+    @char_code = char_code
+    @name = name
+    @title = title
+    @link_list = link_list
+  end
+end
