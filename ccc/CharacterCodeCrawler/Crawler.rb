@@ -1,31 +1,17 @@
 require 'rubygems'
 require 'anemone'
 
-require 'C:\AptanaStudio3\workspace\ccc\CharacterCodeCrawler\PageInfo'
+require 'C:\AptanaStudio3\workspace\ccc\CharacterCodeCrawler\PageScraper'
 
 class Crawler
   opts = {
     :skip_query_strings => true,
     :depth_limit => 1,
   }
-  Anemone.crawl("http://www.yahoo.co.jp/") do |anemone|
+  scraper = PageScraper.new()
+  Anemone.crawl("http://blog.livedoor.jp/news23vip/") do |anemone|
     anemone.on_every_page do |page|
-      page_info = PageInfo.new()
-      # 現在見ているページの URL を取得
-      url = page.url
-      puts url
-      page_info.url = url
-      # タイトルの取得
-      title = page.doc.xpath("//head/title/text()").first.to_s if page.doc
-      puts "title\t#{title}"
-      # 文字コードの取得
-      char_code = page.doc.xpath("//meta[1]/@content") if page.doc
-      puts char_code
-      # リンクの URL のリストを取得
-      link_list = page.links()
-      link_list.each {|link|
-        puts "link," + url.to_s + "," + link.to_s
-      }
+      scraper.scrape(page)
     end
   end
 end
