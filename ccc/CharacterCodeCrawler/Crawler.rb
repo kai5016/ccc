@@ -22,13 +22,20 @@ class Crawler
   seed_urls.push("http://www.chinhphu.vn/portal/page/portal/chinhphu/trangchu")
   # ベトナム版 wikipedia TOP
   seed_urls.push("http://vi.wikipedia.org/wiki/Trang_Ch%C3%ADnh")
+  # ブログタムタイ
+  seed_urls.push("http://blog.tamtay.vn/")
+  # ニュースサイト？
+  seed_urls.push("http://congannghean.vn/")
+  # 赤ちゃん
+  seed_urls.push("http://www.saonhi.vn/")
+    
   fetch_url_list_dao.skip_or_insert(seed_urls)    
 
   # クロール  実行部分
   begin      
     current_url = fetch_url_list_dao.get_waiting_url
     puts "URL[#{current_url}] をクロールします．"
-    Anemone.crawl(current_url, opts) do |anemone|
+    Anemone.crawl(current_url) do |anemone|
       anemone.storage = Anemone::Storage.MongoDB
       anemone.on_every_page do |page|
         if fetch_url_list_dao.skip?(page.url.to_s) then
