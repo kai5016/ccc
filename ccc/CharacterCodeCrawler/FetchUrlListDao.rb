@@ -1,54 +1,111 @@
+# -*- encoding: utf-8 -*-
+
 require 'mongo'
 
+#= fetch_url_list にアクセスするためのクラス
+#
+# anemone が抽出したリンク先のリストを fetch_url_list で管理する．
+# その際， URL は処理の状況に応じてステータスを属性として持つ
+#== URL のステータス
+#- WAIT: 処理町（初期状態）
+#- SUCCESS: 項目抽出処理の正常終了
+#- ERROR: 項目抽出処理の異常終了
 class FetchUrlListDao
-  connection = Mongo::Connection.new
-  #  connection = Mongo::Connection.new('localhost');
-  #  connection = Mongo::Connection.new('localhost'27017);
+  DB_NAME = "character_code_crawler"
+  COLLECTION_NAME = "fetch_url_list"
 
-  puts 'd'
-  puts connection.database_names
+  # ステータス
+  WAIT = 1
+  DONE = 2
+  ERROR = 3
+  # DB に接続し ，コレクション "fetch_url_list" オブジェクトを生成する
+  def get_collection()
+    connection = Mongo::Connection.new
+    db = connection.db(DB_NAME)
+    coll = db.collection(COLLECTION_NAME)
+  end
 
-  puts ''
-  puts 'ds'
-  connection.database_info.each { |info| puts info.inspect }
+  # 既に登録済みの URL はスキップし，未登録の URL のみインサート．
+  def skip_or_insert(link_list)
+    coll = get_collection()
+    puts "#{COLLECTION_NAME} にリンク URL をインサートします．"
+    list_size = link_list.size
+    link_list.each {|link|
+      link_url = link.to_s
+      if exist?(coll,link_url) then
+        puts "URL[#{link_url}] は既にインサート済みなので，スキップします．"
+        list_size -= 1
+        next
+      end
+      link_url = link.to_s
+      insert(coll,link_url)
+    }
+    puts "#{list_size} 件のURLをインサートしました．"
+  end
 
-  # データベースを選択（存在しなければ作成）
-  db = connection.db('ruby_sample')
+  # fetch_url_list にリンク先のリストをインサートする
+  def insert(coll, url)
+    puts "#{COLLECTION_NAME} に URL[#{url}] をインサートします．"
+    doc = {'url' => url,
+      'status' => WAIT,
+      'create_ts' => Time.now,
+      'update_ts' => Time.now}
+    coll.insert(doc)
+    puts "インサート完了"
+  end
 
-  # コレクション選択
-  coll = db.collection('test_coll')
+  # ドキュメントのステータスを更新する
+  def update_status(url, status)
+    coll = get_collection()
+    coll.update({"url" => url}, {"$set" => {"status" => status}})
+    puts "URL[#{url}] のステータスを #{status} に更新しました．"
+  end
 
-  # インサートするドキュメントを作成
-  doc = {'name' => 'MongoDB', 'type' => 'database', 'count' => 1, 'info' => {'x' => 203, 'y' => '102'}}
+  # 引数の URL がコレクション内に存在しているか
+  def exist?(coll, url)
+    doc = coll.find_one("url" => url)
+    if doc.to_s == "" then
+      puts "URL[#{url}] は #{COLLECTION_NAME} 内に存在しません．"
+      return false
+    end
+    puts "URL[#{url}] は #{COLLECTION_NAME} 内に既に存在します．"
+    return true
+  end
 
-  # コレクションにドキュメントをインサート
-  # （データベースが存在しない場合はここで初めて作成される）
-  id = coll.insert(doc)
+  # status == WAIT のドキュメントの URL フィールドを配列にして返す
+  # 条件に合致するドキュメントが無くなったとき waiting_urls を返す
+  def get_waiting_url
+    coll = get_collection
+    doc = coll.find_one("status" => WAIT)
+    return doc["url"]
+  end
+
+  # status == WAIT の条件でドキュメントを取得し，
+  # 処理待ちの URL が存在するかを判断
+  def exist_waiting_url?
+    coll = get_collection
+    puts "#{COLLECTION_NAME} に処理待ち URL があるか確認します．"
+    doc = coll.find_one("status" => WAIT)
+    if doc.to_s == "" then
+      puts "#{COLLECTION_NAME} に処理待ちの URL はありません．"
+      return false
+    end
+    return true
+  end
+
+  # 1つの URL について，その URL が抽出の対象かを判断する．
+  def skip?(url)
+    coll = get_collection()
+    if exist?(coll, url) then
+      doc = coll.find_one("url" => url)
+      status = doc["status"]
+      if status != WAIT then
+        puts "URL[#{url}], status[#{status}]"
+        puts "抽出処理を終えた URL です．スキップします"
+        return true
+      end
+    end
+    return false
+  end
   
-  # 大量のドキュメントをインサート
-  10.times { |i| coll.insert('i' => i) }
-    
-  puts ''
-  puts 'all collection names'
-  puts db.collection.names
-  
-  puts ''
-  puts 'get first document in a collection'
-  puts coll.find_one
-  
-  puts ''
-  puts 'get all document in a collection'
-  coll.find.each { |row| puts row.inspect }
-  
-  puts ''
-  puts 'find by id(id = ' + id.to_s + ')'
-  coll.find('_id' => id).each { |row| row.inspect }
-  puts 'find the \'i\'Field is 7 '
-  coll.find('id' => 7).each { |row| puts row.inspect }
-    
-  puts ''
-  puts 'the document found is able to sort'
-  puts 'the key is \'i\''
-  coll.find.sort([:i,:desc]).each { |row| puts row.inspect }
-    
 end
