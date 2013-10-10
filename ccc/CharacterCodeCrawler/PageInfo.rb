@@ -1,9 +1,13 @@
+# -*- encoding: utf-8 -*-
+
+#-- ページの項目を定義
+#
 class PageInfo
-  attr_accessor :url, :char_code, :body, :title, :link_list
-  def initialize (url=nil, char_code=nil,
+  attr_accessor :url, :charset, :body, :title, :link_list
+  def initialize (url=nil, charset=nil,
                   body=nil, title=nil, link_list=nil)
     @url = url
-    @char_code = char_code
+    @charset = charset
     @body = body
     @title = title
     @link_list = link_list
