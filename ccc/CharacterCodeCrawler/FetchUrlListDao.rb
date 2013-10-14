@@ -18,6 +18,7 @@ class FetchUrlListDao
   WAIT = 1
   DONE = 2
   ERROR = 3
+  
   # DB に接続し ，コレクション "fetch_url_list" オブジェクトを生成する
   def get_collection()
     connection = Mongo::Connection.new
