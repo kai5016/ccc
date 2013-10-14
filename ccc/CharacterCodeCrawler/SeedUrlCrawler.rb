@@ -1,0 +1,2 @@
+class SeedUrlCrawler
+end
