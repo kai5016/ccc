@@ -11,31 +11,41 @@ require '.\PageInfo'
 #- 文字コード
 #- 本文
 class PageScraper
-
   # 必要項目の抽出を行う
   def scrape(page)
-    page_info = PageInfo.new()
+    page_info = PageInfo.new
     puts "スクレイプ開始"
-    
+
     page_info.url = page.url.to_s
     puts "URL\t [#{page_info.url}]"
-      
+
     page_info.title = scrape_title(page)
     puts "Title\t [#{page_info.title}]"
 
-    page_info.charset = page.content_type().to_s
+    page_info.charset = page.content_type.to_s
     puts "Content type\t [#{page_info.charset}]"
-    
-    page_info.body = page.doc().to_s
-#    puts "Document\t [#{page_info.body}]"
-        
-    puts "titile, charset スクレイプ終了"
+
+    page_info.body = extract_text(page.doc)
+    puts "body\t [#{page_info.body}]"
+   
     return page_info
   end
-  
+
   # Web ページソースからタイトルを抽出
   def scrape_title(page)
     page.doc.xpath("//title/text()").first.to_s if page.doc
   end
-    
- end
+
+  # 再帰的に HTML ソースから tag の除去を行う
+  def extract_text(e)
+    if e.is_a? Nokogiri::XML::Text
+      return e.text
+    end
+
+    e.children.inject(String.new) { |text, child|
+      text << extract_text(child)
+      text
+    }
+  end
+
+end

@@ -1,0 +1,48 @@
+# -*- encoding: utf-8 -*-
+
+require '.\PageInfo'
+
+#= Web ページのソースから、必要項目の抽出をおこなう
+#
+# 抽出結果は PageInfo のインスタンスに格納し，それを返す
+#
+#== 必要項目
+#- タイトル
+#- 文字コード
+#- 本文
+class PageScraper
+
+  # 必要項目の抽出を行う
+  def scrape(page)
+    page_info = PageInfo.new()
+    puts "スクレイプ開始"
+    
+    page_info.url = page.url.to_s
+    puts "URL\t [#{page_info.url}]"
+      
+    page_info.title = scrape_title(page)
+    puts "title\t [#{page_info.title}]"
+
+    page_info.charset = scrape_charset(page)
+    puts "content type\t [#{page_info.charset}]"
+
+    puts "titile, charset スクレイプ終了"
+    return page_info
+  end
+  
+  # Web ページソースからタイトルを抽出
+  def scrape_title(page)
+    page.doc.xpath("//title/text()").first.to_s if page.doc
+  end
+  
+  # Web ページソースから文字コードを抽出
+  def scrape_charset(page)
+    page.doc.xpath("//meta[contains(@content,'charset')]").
+                      attribute("content").to_s if page.doc
+  end
+  
+  # Web ページソースから本文を抽出
+  def scrape_body(page)
+    page.doc.xpath("//title/text()").first.to_s if page.doc
+  end
+end

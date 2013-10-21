@@ -1,0 +1,15 @@
+# -*- encoding: utf-8 -*-
+
+require 'nokogiri'
+require '..\Dao\ScrapeResultDao'
+
+scrape_result_dao = ScrapeResultDao.new
+scraper = PageScraper.new
+docs = scrape_result_dao.get_all_documents
+i = 0
+docs.each { |doc|
+  text = scraper.extract_text(Nokogiri::HTML(doc["body"]))
+  puts text
+  i += 1
+  break if i == 100
+}

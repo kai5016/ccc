@@ -2,9 +2,10 @@
 
 require 'rubygems'
 require 'anemone'
+
 require '.\PageScraper'
-require '.\FetchUrlListDao'
-require '.\ScrapeResultDao'
+require '..\Dao\FetchUrlListDao'
+require '..\Dao\ScrapeResultDao'
 
 #-- anemone クローラー実行クラス
 class Crawler

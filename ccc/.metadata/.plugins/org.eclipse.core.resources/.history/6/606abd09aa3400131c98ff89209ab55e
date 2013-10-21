@@ -1,0 +1,6 @@
+require '.\ScrapeResultDao'
+
+class CsvWriter
+  scrape_result_dao = ScrapeResultDao.new
+  body = scrape_result_dao.get_body()
+end

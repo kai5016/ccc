@@ -1,0 +1,16 @@
+require '.\ScrapeResultDao'
+
+class CsvWriter
+  scrape_result_dao = ScrapeResultDao.new
+  docs = scrape_result_dao.get_all_documents
+  i = 0
+  docs.each { |doc|
+    text = doc["body"].gsub(/<\/?[^>]*>/, "")
+    text = text.gsub(/\n/, "")
+    puts "url[#{doc["url"]}]"
+    puts "doc[#{text}]"
+    i += 1
+    break if i == 100
+  }
+  
+end

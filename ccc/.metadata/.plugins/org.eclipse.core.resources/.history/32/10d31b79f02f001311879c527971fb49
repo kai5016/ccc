@@ -1,0 +1,58 @@
+# -*- encoding: utf-8 -*-
+
+require 'rubygems'
+require 'anemone'
+
+require '.\PageScraper'
+require '.\FetchUrlListDao'
+require '.\ScrapeResultDao'
+
+#-- anemone クローラー実行クラス
+class Crawler
+  opts = {
+    :skip_query_strings => true,
+    :depth_limit => 0,
+  }
+ 
+  # DB のコネクションの準備
+  scrape_result_dao = ScrapeResultDao.new()
+  scrape_result_coll = scrape_result_dao.get_collection()        
+  fetch_url_list_dao = FetchUrlListDao.new()
+  fetch_url_list_coll = fetch_url_list_dao.get_collection()
+  
+  # Seed URL (クロールの起点となる URL)を準備
+  urls = set_seed_urls()
+  urls.each { |url|
+    fetch_url_list_dao.insert(fetch_url_list_coll,seed_url)
+  }
+  
+  # スクレイパーの準備
+  scraper = PageScraper.new()
+ 
+  # クロール  実行部分
+  # フェッチされた URL の管理が難しいため，skip_links_like (/.+/) とし，
+  # 自動でリンクをクロールしないようにしている．
+  begin
+    waiting_urls = fetch_url_list_dao.get_waiting_urls(fetch_url_list_coll)
+    waiting_urls.each { |url|
+      Anemone.crawl(url) do |anemone|
+        anemone.skip_links_like(/.*/) do |page|
+          page_info = scraper.scrape(page)
+          scrape_result_dao.insert(scrape_result_coll, page_info)      
+          fetch_url_list_dao.skip_or_insert(fetch_url_list_coll, page.links())
+          fetch_url_list_dao.update_status(page_info.url, fetch_url_list_coll, FetchUrlListDao::DONE)
+        end
+      end
+    }
+  end while fetch_url_list_dao.exist_waiting_url?(fetch_url_list_coll)
+  
+  # クロールの起点となる URL（seed_url）を配列に準備する
+  def set_seed_urls()
+    seed_urls = Array.new
+    # ベトナム政府  TOP
+    seed_urls.push("http://www.chinhphu.vn/portal/page/portal/chinhphu/trangchu")
+    # ベトナム版 wiki TOP
+    seed_urls.push("http://vi.wikipedia.org/wiki/Trang_Ch%C3%ADnh")
+  end
+  
+end

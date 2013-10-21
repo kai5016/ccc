@@ -1,0 +1,10 @@
+require '.\ScrapeResultDao'
+
+class CsvWriter
+  scrape_result_dao = ScrapeResultDao.new
+  docs = scrape_result_dao.get_documents()
+  while docs.hasNext
+    doc = docs.next
+    puts "body[#{doc["body"]}]"
+  end
+end

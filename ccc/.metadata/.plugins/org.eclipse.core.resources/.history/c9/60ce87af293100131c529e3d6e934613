@@ -1,0 +1,108 @@
+# -*- encoding: utf-8 -*-
+
+require 'mongo'
+
+#= fetch_url_list にアクセスするためのクラス
+#
+# anemone が抽出したリンク先のリストを fetch_url_list で管理する．
+# その際， URL は処理の状況に応じてステータスを属性として持つ
+#== URL のステータス
+#- WAIT: 処理町（初期状態）
+#- SUCCESS: 項目抽出処理の正常終了
+#- ERROR: 項目抽出処理の異常終了
+class FetchUrlListDao
+  COLLECTION_NAME = "fetch_url_list"
+  
+  # ステータス
+  WAIT = 1
+  DONE = 2
+  ERROR = 3
+  
+  # DB に接続し ，コレクション "fetch_url_list" オブジェクトを生成する
+  def get_collection()
+    connection = Mongo::Connection.new
+    db = connection.db('character_code_crawler')
+    coll = db.collection(COLLECTION_NAME)
+  end
+  
+  # 既に登録済みの URL はスキップし，未登録の URL のみインサート．
+  def skip_or_insert(coll, link_list)
+    puts "#{COLLECTION_NAME} にリンク先 URL をインサートします．"
+    list_size = link_list.size
+    link_list.each {|link|
+      link_url = link.to_s
+      if exist?(coll,link_url) then
+        puts "URL[#{link_url}] は既に登録済みなので，スキップします．"
+        list_size -= 1
+        next
+      end
+      link_url = link.to_s
+      insert(coll,link_url)
+    }
+    puts "#{list_size} 件のURLをインサートしました．"
+  end
+
+  # fetch_url_list にリンク先のリストをインサートする   
+  def insert(coll, url)
+    puts "#{COLLECTION_NAME} に URL[#{url}] をインサートします．"
+    doc = {'url' => url,
+           'status' => WAIT,
+           'create_ts' => Time.now,
+           'update_ts' => Time.now}
+    coll.insert(doc)    
+    puts "インサート完了"
+  end
+  
+  # ドキュメントのステータスを更新する
+  def update_status(url, coll, status)
+    coll.update({"url" => url}, {"$set" => {"status" => status}})
+    puts "URL[#{url}] のステータスを #{status} に更新しました．"
+  end
+  
+  # 引数の URL がコレクション内に存在しているか
+  def exist?(coll, url)
+    doc = coll.find_one("url" => url)
+    if doc.to_s == "" then
+      puts "URL[#{url}] は #{COLLECTION_NAME} 内に存在しません．"
+      return false
+    end
+    puts "URL[#{url}] は #{COLLECTION_NAME} 内に既に存在します．"
+    return true
+  end
+  
+  # status == WAIT のドキュメントの URL フィールドを配列にして返す
+  # 条件に合致するドキュメントが無くなったとき waiting_urls を返す
+  def get_waiting_url(coll)
+    waiting_urls = Array.new
+    doc = coll.find_one("status" => WAIT)
+    return doc["url"]
+  end
+  
+  # status == WAIT のドキュメントのカウントをとり，
+  # 処理待ちの URL が存在するかを判断
+  def exist_waiting_url?(coll)
+    puts "#{COLLECTION_NAME} に処理待ち URL があるか確認します．"
+    count = coll.count("status" => WAIT)
+    if count > 0 then
+      return true
+    end
+    puts "#{COLLECTION_NAME} に処理待ちの URL はありません．"
+    return false
+  end
+  
+  # 1つの URL について，その URL が抽出の対象かを判断する．
+  def skip?(coll, url)
+    doc = coll.find_one("url" => url)
+    if doc.to_s == "" then
+      return false
+    end
+    status = doc["status"]
+    if status != WAIT then
+      puts "URL[#{url}], status[#{status}]"
+      puts "抽出処理を終えた URL です．スキップします"
+      return true
+    end
+    return false
+  end
+    
+end

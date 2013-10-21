@@ -1,0 +1,58 @@
+# -*- encoding: utf-8 -*-
+
+require 'rubygems'
+require 'anemone'
+require '.\PageScraper'
+require '.\FetchUrlListDao'
+require '.\ScrapeResultDao'
+
+#-- anemone クローラー実行クラス
+class Crawler
+  opts = {
+    :skip_query_strings => true,
+    :depth_limit => 1,
+  }
+
+  # DB のコネクションの準備
+  scrape_result_dao = ScrapeResultDao.new()
+  scrape_result_coll = scrape_result_dao.get_collection()
+  fetch_url_list_dao = FetchUrlListDao.new()
+  fetch_url_list_coll = fetch_url_list_dao.get_collection()
+
+  # Seed URL (クロールの起点となる URL)を準備
+  seed_urls = Array.new
+  # ベトナム政府  TOP
+  seed_urls.push("http://www.chinhphu.vn/portal/page/portal/chinhphu/trangchu")
+  # ベトナム版 wikipedia TOP
+  seed_urls.push("http://vi.wikipedia.org/wiki/Trang_Ch%C3%ADnh")
+  fetch_url_list_dao.skip_or_insert(fetch_url_list_coll, seed_urls)
+
+  # スクレイパーの準備
+  scraper = PageScraper.new()
+
+  # クロール  実行部分
+  begin
+    current_url = fetch_url_list_dao.get_waiting_url(fetch_url_list_coll)
+    puts "URL[#{current_url}] をクロールします．"
+    Anemone.crawl(current_url, opts) do |anemone|
+      anemone.storage = Anemone::Storage.MongoDB
+      anemone.on_every_page do |page|
+        if fetch_url_list_dao.skip?(fetch_url_list_coll, page.url.to_s) then
+          next
+        end
+        page_info = scraper.scrape(page)
+        scrape_result_dao.insert_or_update(scrape_result_coll, page_info)
+        fetch_url_list_dao.skip_or_insert(fetch_url_list_coll, page.links())
+        fetch_url_list_dao.update_status(page_info.url, fetch_url_list_coll, FetchUrlListDao::DONE)
+      end
+      # このタイミングで current_url は status = 2 (処理終了) でなければおかしい
+      # もう一度 処理待ちの URLを取得した際に，取得した URL と current_url を比較し，
+      # 処理が無事終了しているかを判断する．
+      # 比較の結果等しければ，status = 3 (異常終了) に更新する
+      if current_url == fetch_url_list_dao.get_waiting_url(fetch_url_list_coll)
+        fetch_url_list_dao.update_status(current_url, fetch_url_list_coll, FetchUrlListDao::ERROR)
+      end
+    end
+  end while fetch_url_list_dao.exist_waiting_url?(fetch_url_list_coll)
+
+end

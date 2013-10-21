@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item value="471" key="DIALOG_WIDTH"/>
+		<item value="147" key="DIALOG_Y_ORIGIN"/>
+		<item value="191" key="DIALOG_X_ORIGIN"/>
+		<item value="483" key="DIALOG_HEIGHT"/>
+		<item value="1|メイリオ|9.0|0|WINDOWS|1|-15|0|0|0|400|0|0|0|1|0|0|0|0|メイリオ" key="DIALOG_FONT_NAME"/>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item value="true" key="wrap"/>
+		<item value="false" key="casesensitive"/>
+		<item value="false" key="isRegEx"/>
+		<item value="false" key="incremental"/>
+		<item value="false" key="wholeword"/>
+		<item value="fetch_url_list_coll" key="selection"/>
+		<list key="findhistory">
+			<item value="fetch_url_list_coll"/>
+			<item value="update"/>
+			<item value="exist?"/>
+			<item value="skip"/>
+			<item value="抽出結果"/>
+			<item value="更新"/>
+			<item value="抽出結果を"/>
+			<item value="    if exist? then"/>
+		</list>
+		<list key="replacehistory">
+		</list>
+	</section>
+</section>

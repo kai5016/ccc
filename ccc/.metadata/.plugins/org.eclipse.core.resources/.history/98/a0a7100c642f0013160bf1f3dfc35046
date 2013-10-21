@@ -1,0 +1,73 @@
+# -*- encoding: utf-8 -*-
+
+require 'mongo'
+
+#= fetch_url_list にアクセスするためのクラス
+#
+# anemone が抽出したリンク先のリストを fetch_url_list で管理する．
+# その際， URL は処理の状況に応じてステータスを属性として持つ
+#== URL のステータス
+#- WAIT: 処理町（初期状態）
+#- SUCCESS: 項目抽出処理の正常終了
+#- ERROR: 項目抽出処理の異常終了
+class FetchUrlListDao
+  COLLECTION_NAME = "fetch_url_list"
+  
+  # ステータス
+  WAIT = 1
+  DONE = 2
+  ERROR = 3
+  
+  # DB に接続し ，コレクション "fetch_url_list" オブジェクトを生成する
+  def get_collection()
+    connection = Mongo::Connection.new
+    db = connection.db('character_code_crawler')
+    coll = db.collection(COLLECTION_NAME)
+    end
+  
+  # fetch_url_list にリンク先のリストをインサートする  
+  def insert(coll, link_list)
+    puts "#{COLLECTION_NAME} にリンク先 URL をインサートします．"
+    list_size = link_list.size
+    link_list.each {|link|
+      link_url = link.to_s
+      if exist?(coll,link_url) then
+        puts "URL[#{link_url}] は既に登録済みなので，スキップします．"
+        list_size -= 1
+        next
+      end
+      link_url = link.to_s
+      puts "link: " + link_url
+      doc = {'url' => link_url,
+             'status' => WAIT,
+             'create_ts' => Time.now,
+             'update_ts' => Time.now}
+      coll.insert(doc)
+      puts "Link URL [#{link_url}] をインサート完了"
+    }
+    puts "#{list_size} 件のURLをインサートしました．"
+  end
+  
+  # ドキュメントのステータスを更新する
+  def update_status(url, coll, status)
+      coll.update({"url" => url}, {"$set" => {"status" => status}})
+      puts "URL[#{url}] のステータスを #{status} に更新しました．"
+  end
+  
+  # URL で検索をかける
+  def find_by_url(coll, url)
+    coll.find_one("url" => url)
+  end
+  
+  # 引数の URL がコレクション内に存在しているか
+  def exist?(coll, url)
+    doc = coll.find_one("url" => url)
+    puts "doc = #{doc}"
+    if doc == '[]' then
+      puts "URL[#{url}] は #{COLLECTION_NAME} 内に既に存在します．"
+      return true
+    end
+    puts "URL[#{url}] は #{COLLECTION_NAME} 内に存在しません．"
+    false
+  end 
+end

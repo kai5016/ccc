@@ -1,0 +1,4 @@
+require '.\ScrapeResultDao'
+
+class CsvWriter
+end

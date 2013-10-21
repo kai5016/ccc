@@ -1,0 +1,56 @@
+# -*- encoding: utf-8 -*-
+
+require 'mongo'
+
+#= DB "character_code_crawler" のコレクション "scrape_result" にアクセスするためのクラス
+#
+# anemone が抽出した項目を  scrape_result で管理する．
+class ScrapeResultDao
+  
+  # DB に接続し ，コレクション "scrape_result" オブジェクトを生成する
+  def get_collection()
+    connection = Mongo::Connection.new
+    db = connection.db('character_code_crawler')
+    coll = db.collection('scrape_result')
+  end
+
+  # 以前に抽出結果が登録された URL なのか，新規の URL なのかによって
+  # ドキュメントを挿入するか更新するかを判断する
+  def insert_or_update(coll, page_info)
+    count = coll.count("url" => page_info.url.to_s)
+    if count == 0 then
+      insert(coll, page_info)
+#    else
+#      update(coll, page_info)
+    end
+  end
+    
+  # コレクション内に対象の URL が存在するか
+  def exist?(coll, url)
+    count = coll.count("url" => url)
+    if count == 0 then
+      return false
+    end
+    return true
+  end
+  # コレクション "scrape_result"に page_info のインスタンスを挿入
+  def insert(coll, page_info)
+    doc = {'url' => page_info.url,
+           'title' => page_info.title,
+           'charset' => page_info.charset, 
+           'body' => page_info.body,
+           'create_ts' => Time.now,
+           'update_ts' => Time.now}
+    coll.insert(doc)
+  end
+  
+  #page_info の内容を更新
+  def update(coll, page_info)
+    coll.update({"url" => page_info.url}, 
+                {"$set" => {'title' => page_info.title,
+                            'charset' => page_info.charset, 
+                            'body' => page_info.body,
+                            'update_ts' => Time.now}})    
+  end
+
+end

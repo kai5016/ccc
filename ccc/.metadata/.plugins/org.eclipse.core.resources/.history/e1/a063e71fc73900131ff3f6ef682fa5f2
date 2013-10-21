@@ -1,0 +1,30 @@
+# -*- encoding: utf-8 -*-
+
+require 'nokogiri'
+require '..\Dao\ScrapeResultDao'
+
+class CrawlDataParser
+  def extract_text(e)
+    if e.is_a? Nokogiri::XML::Text
+      return e.text
+    end
+
+    e.children.inject(String.new) { |text, child|
+      text << extract_text(child)
+      text
+    }
+  end
+
+  def strip_tags(Nokogiri::HTML::Document)
+    scrape_result_dao = ScrapeResultDao.new
+    docs = scrape_result_dao.get_all_documents
+    i = 0
+    docs.each { |doc|
+      text = extract_text(Nokogiri::HTML(doc["body"]))
+      puts text
+      i += 1
+      break if i == 100
+    }
+  end
+
+end

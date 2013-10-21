@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename source module &apos;CsvWriter.rb&apos; to &apos;CrawlDataParser.rb&apos;&#x0D;&#x0A;- オリジナル要素: &apos;(default package)::CsvWriter.rb&apos;&#x0D;&#x0A;- 名前変更済み要素: &apos;(default package)::CrawlDataParser.rb&apos;" description="Rename source module &apos;CsvWriter.rb&apos;" flags="589830" id="org.eclipse.dltk.ui.rename.sourcemodule" input="/&lt;{CsvWriter.rb" name="CrawlDataParser.rb" stamp="1382300304615" version="1.0"/>
+</session>

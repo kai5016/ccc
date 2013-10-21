@@ -1,0 +1,22 @@
+# -*- encoding: utf-8 -*-
+
+require 'nokogiri'
+
+require '..\Dao\ScrapeResultDao'
+require '.\PageScraper'
+require '.\PageInfo'
+
+
+scrape_result_dao = ScrapeResultDao.new
+scraper = PageScraper.new
+docs = scrape_result_dao.get_all_documents
+docs.each { |doc|
+  page_info = PageInfo.new
+  page_info.url = doc["url"]
+  page_info.title = doc["title"]
+  page_info.charset = doc["charset"]
+  text = scraper.extract_text(Nokogiri::HTML(doc["body"]))
+  page_info.body = text
+  
+  update(scrape_result_dao.get_collection, page_info)
+}
