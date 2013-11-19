@@ -1,11 +1,17 @@
 # -*- encoding: utf-8 -*-
 
+require 'logger'
 require 'mongo'
 
 #= DB "character_code_crawler" のコレクション "scrape_result" にアクセスするためのクラス
 #
 # anemone が抽出した項目を  scrape_result で管理する．
 class ScrapeResultDao
+  def initialize(log = nil)
+    @log = log || Logger.new("crawler.log")
+  end
+  attr_reader :log
+    
   COLLECTION_NAME = "scrape_result"
   
   # DB に接続し ，コレクション "scrape_result" オブジェクトを生成する
@@ -68,5 +74,14 @@ class ScrapeResultDao
   def get_all_documents
     coll = get_collection
     docs = coll.find
+  end
+  
+  # ドキュメントが正規化されているかのフラグをセットする
+  def set_normalized_flg(boolean, url)
+    coll = get_collection
+    coll.update({"url" => url}, 
+                    {"$set" => {'normalized_flg' => boolean,
+                                'update_ts' => Time.now}})
+    puts "#{COLLECTION_NAME} の URL[#{url}] の正規化フラグを更新しました．"
   end
 end
