@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 
+require 'logger'
 require '.\PageInfo'
 
 #= Web ページのソースから、必要項目の抽出をおこなう
@@ -11,22 +12,27 @@ require '.\PageInfo'
 #- 文字コード
 #- 本文
 class PageScraper
+  def initialize(log = nil)
+    @log = log || Logger.new("crawler.log")
+  end
+  attr_reader :log
+
   # 必要項目の抽出を行う
   def scrape(page)
     page_info = PageInfo.new
-    puts "スクレイプ開始"
+    url = page.url.to_s
+    log.info "URL[#{url}] のスクレイプ開始"
 
-    page_info.url = page.url.to_s
-    puts "URL\t [#{page_info.url}]"
+    page_info.url = url
 
     page_info.title = scrape_title(page)
-    puts "Title\t [#{page_info.title}]"
+    log.debug "Title\t [#{page_info.title}]"
 
     page_info.charset = page.content_type.to_s
-    puts "Content type\t [#{page_info.charset}]"
+    log.debug "Content type\t [#{page_info.charset}]"
 
     page_info.body = extract_text(page.doc)
-    puts "body\t [#{page_info.body}]"
+    log.debug "body\t [#{page_info.body}]"
    
     return page_info
   end

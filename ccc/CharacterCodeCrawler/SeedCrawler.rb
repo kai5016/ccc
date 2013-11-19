@@ -23,7 +23,6 @@ class SeedCrawler
 
   # データの用意
   seed_url = "https://www.google.co.jp/search?q=blog&lr=lang_vi&hl=ja&as_qdr=all&ie=UTF-8&tbs=lr:lang_1vi&prmd=ivnsl&ei=VihuUp3gBMW_kQXZrYCgDA&sa=N#as_qdr=all&filter=0&hl=ja&lr=lang_vi&q=blog&safe=off&tbs=lr:lang_1vi&start="
-  doc = nil
 
   # 0から10刻みで990まで，pagenum を増加させて URL を生成
   # 生成した URL に対してクロールを実行
@@ -32,6 +31,7 @@ class SeedCrawler
     log.info "SEED URL[#{url} をクロールします．"
     
     # ドキュメントの取得
+    doc = nil
     begin
       timeout(10) do
         doc = Nokogiri::HTML(open(url))
@@ -46,11 +46,15 @@ class SeedCrawler
     doc.xpath("//h3/a").each { |node|
       href = node["href"]
       href.gsub!(/\/url\?q=/, "")
-      link_urls.push(href)
-      log.info "href[#{href}]"
+      if href.start_with?("http")
+        log.info "href[#{href}]"
+        link_urls.push(href)
+      else
+        log.info "href[#{href}] は処理対象ではありません"
+      end
     }
     log.info "#{link_urls.size} 件の URL を抽出しました"
 
-    #  fetch_url_list_dao.skip_or_insert(link_urls)
+    fetch_url_list_dao.skip_or_insert(link_urls, FetchUrlListDao::SEED)
   end
 end

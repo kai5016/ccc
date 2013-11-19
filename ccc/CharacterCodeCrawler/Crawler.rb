@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 require 'rubygems'
+require 'logger'
 require 'anemone'
 
 require '.\PageScraper'
@@ -9,28 +10,13 @@ require '..\Dao\ScrapeResultDao'
 
 #-- anemone クローラー実行クラス
 class Crawler
+  log = Logger.new("crawler.log")
+  log.progname = $PROGRAM_NAME
+  log.level = Logger::INFO  
   opts = {
     :skip_query_strings => true,
 #    :depth_limit => 1,
   }
-
-  scrape_result_dao = ScrapeResultDao.new()
-  fetch_url_list_dao = FetchUrlListDao.new()
-  scraper = PageScraper.new()
-
-  seed_urls = Array.new
-  # ベトナム政府  TOP
-  seed_urls.push("http://www.chinhphu.vn/portal/page/portal/chinhphu/trangchu")
-  # ベトナム版 wikipedia TOP
-  seed_urls.push("http://vi.wikipedia.org/wiki/Trang_Ch%C3%ADnh")
-  # ブログタムタイ
-  seed_urls.push("http://blog.tamtay.vn/")
-  # ニュースサイト？
-  seed_urls.push("http://congannghean.vn/")
-  # 赤ちゃん
-  seed_urls.push("http://www.saonhi.vn/")
-    
-  fetch_url_list_dao.skip_or_insert(seed_urls)    
 
   # クロール  実行部分
   begin      
