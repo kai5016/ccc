@@ -84,4 +84,10 @@ class ScrapeResultDao
                                 'update_ts' => Time.now}})
     puts "#{COLLECTION_NAME} の URL[#{url}] の正規化フラグを更新しました．"
   end
+  
+  # normalized_flg に従ってドキュメントを取得する
+  def get_none_normalized_doc(boolean)
+    coll = get_collection
+    docs = coll.find({"normalized_flg" => boolean})
+  end
 end
