@@ -11,9 +11,9 @@ class ScrapeResultDao
     @log = log || Logger.new("crawler.log")
   end
   attr_reader :log
-    
+
   COLLECTION_NAME = "scrape_result"
-  
+
   # DB に接続し ，コレクション "scrape_result" オブジェクトを生成する
   def get_collection
     connection = Mongo::Connection.new
@@ -31,7 +31,7 @@ class ScrapeResultDao
       insert(coll, page_info)
     end
   end
-    
+
   # コレクション内に対象の URL が存在するか
   def exist?(coll, url)
     doc = coll.find_one("url" => url)
@@ -42,19 +42,20 @@ class ScrapeResultDao
     puts "URL[#{url}] は既に #{COLLECTION_NAME} に抽出結果が登録されています"
     return true
   end
+
   # コレクション "scrape_result"に page_info を挿入
   def insert(coll, page_info)
     puts "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入します．"
     doc = {'url' => page_info.url,
-           'title' => page_info.title,
-           'charset' => page_info.charset, 
-           'body' => page_info.body,
-           'create_ts' => Time.now,
-           'update_ts' => Time.now}
+      'title' => page_info.title,
+      'charset' => page_info.charset,
+      'body' => page_info.body,
+      'create_ts' => Time.now,
+      'update_ts' => Time.now}
     coll.insert(doc)
     puts "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入しました．"
   end
-  
+
   # page_info の内容を更新
   # 他クラスから単独でこのメソッドを使用する際は以下のようになる．
   #
@@ -62,32 +63,38 @@ class ScrapeResultDao
   #
   def update(coll, page_info)
     puts "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新します．"
-    coll.update({"url" => page_info.url}, 
-                {"$set" => {'title' => page_info.title,
-                            'charset' => page_info.charset, 
-                            'body' => page_info.body,
-                            'update_ts' => Time.now}})
+    coll.update({"url" => page_info.url},
+    {"$set" => {'title' => page_info.title,
+      'charset' => page_info.charset,
+      'body' => page_info.body,
+      'update_ts' => Time.now}})
     puts "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新しました．"
   end
-  
+
   # DB から 全てのドキュメント を取得
   def get_all_documents
     coll = get_collection
     docs = coll.find
   end
-  
+
   # ドキュメントが正規化されているかのフラグをセットする
   def set_normalized_flg(boolean, url)
     coll = get_collection
-    coll.update({"url" => url}, 
-                    {"$set" => {'normalized_flg' => boolean,
-                                'update_ts' => Time.now}})
+    coll.update({"url" => url},
+    {"$set" => {'normalized_flg' => boolean,
+      'update_ts' => Time.now}})
     puts "#{COLLECTION_NAME} の URL[#{url}] の正規化フラグを更新しました．"
   end
-  
+
   # normalized_flg に従ってドキュメントを取得する
-  def get_none_normalized_doc(boolean)
+  def find_by_normalized_flg(boolean)
     coll = get_collection
     docs = coll.find({"normalized_flg" => boolean})
+  end
+
+  # normalized_flg に従ってドキュメントを取得する
+  def find_one_by_normalized_flg(boolean)
+    coll = get_collection
+    docs = coll.find_one({"normalized_flg" => boolean})
   end
 end
