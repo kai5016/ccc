@@ -95,6 +95,12 @@ class ScrapeResultDao
   # normalized_flg に従ってドキュメントを取得する
   def find_one_by_normalized_flg(boolean)
     coll = get_collection
-    docs = coll.find_one({"normalized_flg" => boolean})
+    doc = coll.find_one({"normalized_flg" => boolean})
+  end
+
+  # url を条件にしてドキュメントを取得する
+  def find_by_url(url)
+    coll = get_collection
+    docs = coll.find({"url" => url})
   end
 end
