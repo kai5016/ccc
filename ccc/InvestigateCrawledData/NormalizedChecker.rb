@@ -5,11 +5,12 @@ require '..\Dao\ScrapeResultDao'
 require '..\Dao\CharCountDao'
 require '..\eprun\lib\string_normalize'
 
-class CrawlDataParser
+class NormalizedChecker
   def initialize(log = nil)
-      @log = log || Logger.new("parser.log")
-    end
-    attr_reader :log
+    @log = log || Logger.new("crawlData.log")
+  end
+  attr_reader :log
+
   # ベトナム語の1文字辺りの出現数をカウントする
   def count_character_indb(dao)
     scrape_result_dao = ScrapeResultDao.new
@@ -53,30 +54,44 @@ class CrawlDataParser
     Normalize::NF_HASH_C.clear
     body = doc["body"]
     log.info "URL: #{doc["url"]}"
-    log.info "normalized_flg: #{body.normalize}"
     hash = Normalize::NF_HASH_C
     log.info hash
     return hash
   end
-  
+
   # 文字列中に正規化が必要な文字がいくつあるかカウントをする
-  def count_none_normalized(str)
+  def count_none_normalized(str, form = :nfc)
     count = Hash.new(0)
-    matches = str.scan(Normalize::REGEXP_C)
+    mode = {:nfc => Normalize::REGEXP_C, :nfd => Normalize::REGEXP_D}
+    matches = str.scan(mode[form])
     matches.each { |match|
       count[match] += 1
     }
+    log.info count
     return count
+  end
+
+  # NFD で得たカウントと，NFC で得たカウントの差をとる
+  def diff_nfd_nfc(nfd_hash, nfc_hash)
+    diff = Hash.new(0)
+    nfc_hash.each{ |key, value|
+      log.debug "NFD でカウントした結果: #{nfd_hash[key]}"
+      log.debug "NFC でカウントした結果: #{nfc_hash[key]}"
+      diff[key] = nfd_hash[key] - value
+    }
+    log.info "diff: #{diff}"
+    return diff
   end
 
 end
 
 scrape_result_dao = ScrapeResultDao.new
-parser = CrawlDataParser.new
-doc = scrape_result_dao.find_one_by_normalized_flg(false)
-body = doc["body"]
-count = parser.count_none_normalized(body)
-
-puts doc["url"]
-puts count
-puts parser.get_normalize_hash(doc)
+checker = NormalizedChecker.new
+docs = scrape_result_dao.find_by_normalized_flg(false)
+docs.each { |doc|
+  body = doc["body"]
+  checker.get_normalize_hash(doc)
+  nfc_count = checker.count_none_normalized(body)
+  nfd_count = checker.count_none_normalized(body, :nfd)
+  checker.diff_nfd_nfc(nfd_count,nfc_count)
+}
