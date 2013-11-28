@@ -83,12 +83,13 @@ class FetchUrlListDao
     return true
   end
 
-  # status == WAIT のドキュメントの URL フィールドを配列にして返す
-  # 条件に合致するドキュメントが無くなったとき waiting_urls を返す
+  # status == WAIT のドキュメントの URL フィールドを返す
   def get_waiting_url
     coll = get_collection
+    doc = coll.find_one("status" => WAIT, "priority" => SEED)
+    return doc["url"] if doc.to_s == ""
     doc = coll.find_one("status" => WAIT)
-    return doc["url"]
+    return doc["url"] if doc.to_s == ""
   end
 
   # status == WAIT の条件でドキュメントを取得し，
