@@ -45,7 +45,7 @@ class ScrapeResultDao
 
   # コレクション "scrape_result"に page_info を挿入
   def insert(coll, page_info)
-    puts "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入します．"
+    log.info "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入します．"
     doc = {'url' => page_info.url,
       'title' => page_info.title,
       'charset' => page_info.charset,
@@ -53,7 +53,7 @@ class ScrapeResultDao
       'create_ts' => Time.now,
       'update_ts' => Time.now}
     coll.insert(doc)
-    puts "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入しました．"
+    log.info "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入しました．"
   end
 
   # page_info の内容を更新
