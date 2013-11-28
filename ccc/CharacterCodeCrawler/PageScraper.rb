@@ -30,7 +30,10 @@ class PageScraper
 
     page_info.charset = page.content_type.to_s
     log.debug "Content type\t [#{page_info.charset}]"
-
+    
+    page_info.act_charset = scrape_charset(page)
+    log.debug "Scraped content type\t [#{page_info.act_charset}]"
+        
     page_info.body = page.doc.to_s
 # tag 除去がうまく走らない場合があるのでそれが改善されるまで，body をそのまま格納
 #    page_info.body = extract_text(page.doc)
@@ -42,6 +45,14 @@ class PageScraper
   # Web ページソースからタイトルを抽出
   def scrape_title(page)
     page.doc.xpath("//title/text()").first.to_s if page.doc
+  end
+  
+  def scrape_charset(page)
+    page.doc.xpath("//meta").each { |node|
+      charset = node["content"]
+      return charset if charset.include?("charset")
+    }
+    return ""
   end
 
   # 再帰的に HTML ソースから tag の除去を行う
