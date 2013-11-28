@@ -31,8 +31,10 @@ class PageScraper
     page_info.charset = page.content_type.to_s
     log.debug "Content type\t [#{page_info.charset}]"
 
-    page_info.body = extract_text(page.doc)
-    log.debug "body\t [#{page_info.body}]"
+    page_info.body = page.doc.to_s
+# tag 除去がうまく走らない場合があるのでそれが改善されるまで，body をそのまま格納
+#    page_info.body = extract_text(page.doc)
+#    log.debug "body\t [#{page_info.body}]"
    
     return page_info
   end
