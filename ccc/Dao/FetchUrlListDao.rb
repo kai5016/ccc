@@ -31,7 +31,7 @@ class FetchUrlListDao
 
   # DB に接続し ，コレクション "fetch_url_list" オブジェクトを生成する
   def get_collection()
-    connection = Mongo::Connection.new
+    connection = Mongo::Connection.new("168.63.201.238", 27017)
     db = connection.db(DB_NAME)
     coll = db.collection(COLLECTION_NAME)
   end

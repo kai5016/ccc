@@ -16,7 +16,7 @@ class ScrapeResultDao
 
   # DB に接続し ，コレクション "scrape_result" オブジェクトを生成する
   def get_collection
-    connection = Mongo::Connection.new
+    connection = Mongo::Connection.new("168.63.201.238", 27017)
     db = connection.db('character_code_crawler')
     coll = db.collection(COLLECTION_NAME)
   end
