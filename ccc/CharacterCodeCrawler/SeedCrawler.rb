@@ -18,7 +18,7 @@ class SeedCrawler
   log.level = Logger::INFO
 
   scrape_result_dao = ScrapeResultDao.new
-  fetch_url_list_dao = FetchUrlListDao.new
+  fetch_url_dao = FetchUrlDao.new
   scraper = PageScraper.new
 
   # データの用意
@@ -55,6 +55,6 @@ class SeedCrawler
     }
     log.info "#{link_urls.size} 件の URL を抽出しました"
 
-    fetch_url_list_dao.skip_or_insert(link_urls, FetchUrlListDao::SEED)
+    fetch_url_dao.skip_or_insert(link_urls, FetchUrlListDao::SEED)
   end
 end
