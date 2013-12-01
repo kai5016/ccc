@@ -6,7 +6,7 @@ require 'nokogiri'
 require 'open-uri'
 require 'openssl'
 require '.\PageScraper'
-require '..\Dao\FetchUrlListDao'
+require '..\Dao\FetchUrlDao'
 require '..\Dao\ScrapeResultDao'
 
 class SeedCrawler
