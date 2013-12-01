@@ -31,12 +31,13 @@ class PageScraper
     if doc != nil
       page_info.title = scrape_title(doc)
       log.debug "Title\t [#{page_info.title}]"
-      
+
       page_info.act_charset = scrape_charset(doc)
       log.debug "Scraped content type\t [#{page_info.act_charset}]"
-      
+
       page_info.body = doc.to_s
     else
+      page_info.title = ""
       page_info.act_charset = ""
       page_info.body = "Failed to extract a body."
       log.ERROR "#{url} の body は抽出できませんでした．"
