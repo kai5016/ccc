@@ -55,6 +55,6 @@ class SeedCrawler
     }
     log.info "#{link_urls.size} 件の URL を抽出しました"
 
-    fetch_url_dao.skip_or_insert(link_urls, FetchUrlListDao::SEED)
+    fetch_url_dao.skip_or_insert(link_urls, FetchUrl::SEED)
   end
 end
