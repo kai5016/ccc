@@ -109,12 +109,13 @@ class FetchUrlDao
   # 1つの URL について，その URL が抽出の対象かを判断する．
   def skip?(url)
     fetch_url = FetchUrl.where(:url => url).first
+    return true if fetch_url == nil  
     status = fetch_url.status
     if status == FetchUrl::WAIT
       log.debug "URL[#{url}] は未処理です．"
       return false
     end
-    log.info "URL[#{url}] は[#{fetch_url.update_at}] に処理されました．"
+    log.info "URL[#{url}] はステータス[#{status}] で処理されました．"
     return true
   end
 
