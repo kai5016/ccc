@@ -35,11 +35,10 @@ class ScrapeResultDao
   # コレクション内に対象の URL が存在するか
   def exist?(coll, url)
     doc = coll.find_one("url" => url)
-    puts "doc = [#{doc}]"
     if doc.to_s == "" then
       return false
     end
-    puts "URL[#{url}] は既に #{COLLECTION_NAME} に抽出結果が登録されています"
+    log.info "URL[#{url}] は既に #{COLLECTION_NAME} に抽出結果が登録されています"
     return true
   end
 
@@ -62,13 +61,13 @@ class ScrapeResultDao
   # update(scrape_result_dao.get_collection, page_info)
   #
   def update(coll, page_info)
-    puts "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新します．"
+    log.debug "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新します．"
     coll.update({"url" => page_info.url},
     {"$set" => {'title' => page_info.title,
       'charset' => page_info.charset,
       'body' => page_info.body,
       'update_ts' => Time.now}})
-    puts "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新しました．"
+    log.info "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新しました．"
   end
 
   # DB から 全てのドキュメント を取得
@@ -83,7 +82,7 @@ class ScrapeResultDao
     coll.update({"url" => url},
     {"$set" => {'normalized_flg' => boolean,
       'update_ts' => Time.now}})
-    puts "#{COLLECTION_NAME} の URL[#{url}] の正規化フラグを更新しました．"
+    log.info "#{COLLECTION_NAME} の URL[#{url}] の正規化フラグを更新しました．"
   end
 
   # normalized_flg に従ってドキュメントを取得する

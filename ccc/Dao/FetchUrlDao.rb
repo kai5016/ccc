@@ -41,7 +41,7 @@ class FetchUrlDao
   end
 
   # 既に登録済みの URL はスキップし，未登録の URL のみインサート．
-  def skip_or_insert(link_list, status = FetchUrl::WAIT, priority = FetchUrl::OTHER)
+  def skip_or_insert(link_list, priority, depth = 0)
     list_size = link_list.size
     link_list.each {|link|
       link_url = link.to_s
@@ -50,19 +50,19 @@ class FetchUrlDao
         list_size -= 1
         next
       end
-      link_url = link.to_s
-      insert(link_url, status, priority)
+      insert(link_url, FetchUrl::WAIT, priority, depth)
     }
     log.info "#{list_size} 件のURLをインサートしました．"
     puts "#{list_size} 件のURLをインサートしました．"
   end
 
   # fetch_url_list にリンク先のリストをインサートする
-  def insert(url, status = FetchUrl::WAIT, priority = FetchUrl::OTHER)
+  def insert(url, status = FetchUrl::WAIT, priority = FetchUrl::OTHER, depth = 0)
     log.info "URL[#{url}] をインサートします．"
     fetch_url = FetchUrl.new(:url => url,
-    :priority => priority,
-    :status => status)
+                             :priority => priority,
+                             :status => status,
+                             :depth => depth)
     fetch_url.save
     log.debug "インサート完了"
   end
@@ -89,16 +89,16 @@ class FetchUrlDao
   # status == WAIT のドキュメントの URL フィールドを返す
   def get_waiting_url
     fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).and("priority" => FetchUrl::SEED).first
-    return fetch_url if fetch_url != nil
+    return fetch_url.url if fetch_url != nil
     fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).and("priority" => FetchUrl::OTHER).first
-    return fetch_url
+    return fetch_url.url
   end
 
   # status == WAIT の条件でドキュメントを取得し，
   # 処理待ちの URL が存在するかを判断
   def exist_waiting_url?
     log.debug "処理待ち URL があるか確認します．"
-    fetch_url = FetchUrl.first("status" => FetchUrl::WAIT)
+    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).first
     if fetch_url == nil then
       log.info "処理待ちの URL はありません．"
       return false
@@ -108,16 +108,14 @@ class FetchUrlDao
 
   # 1つの URL について，その URL が抽出の対象かを判断する．
   def skip?(url)
-    if exist?(url)
-      doc = coll.find_one("url" => url)
-      status = doc["status"]
-      if status != WAIT then
-        log.info "URL[#{url}], status[#{status}]"
-        log.info "抽出処理を終えた URL です．スキップします"
-        return true
-      end
+    fetch_url = FetchUrl.where(:url => url).first
+    status = fetch_url.status
+    if status == FetchUrl::WAIT
+      log.debug "URL[#{url}] は未処理です．"
+      return false
     end
-    return false
+    log.info "URL[#{url}] は[#{fetch_url.update_at}] に処理されました．"
+    return true
   end
 
 end
