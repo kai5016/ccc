@@ -31,7 +31,7 @@ end
 class Crawler
   log = Logger.new("crawler.log")
   log.progname = $PROGRAM_NAME
-  log.level = Logger::DEBUG
+  log.level = Logger::ERROR
   
   # anemone に渡すオプション
   opts = {
