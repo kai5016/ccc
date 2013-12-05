@@ -22,7 +22,11 @@ class SeedCrawler
   scraper = PageScraper.new
 
   # データの用意
-  seed_url = "https://www.google.co.jp/search?q=blog&lr=lang_vi&hl=ja&as_qdr=all&ie=UTF-8&tbs=lr:lang_1vi&prmd=ivnsl&ei=VihuUp3gBMW_kQXZrYCgDA&sa=N#as_qdr=all&filter=0&hl=ja&lr=lang_vi&q=blog&safe=off&tbs=lr:lang_1vi&start="
+  key_word = "H%C3%A0+N%E1%BB%99i"
+  seed_url = "https://www.google.co.jp/search?q=" + key_word + 
+             "&lr=lang_vi&hl=ja&as_qdr=all&tbs=lr:lang_1vi&prmd=ivnsl&ei=VihuUp3gBMW_kQXZrYCgDA&sa=N#as_qdr=all&filter=0&hl=ja&lr=lang_vi&q=" +
+             key_word + "&safe=off&tbs=lr:lang_1vi&start="
+#  seed_url = "https://www.google.co.jp/search?q=L%C3%AA+C%C3%B4ng+Vinh&lr=lang_vi&hl=ja&as_qdr=all&tbs=lr:lang_1vi&prmd=ivnsl&ei=VihuUp3gBMW_kQXZrYCgDA&sa=N#as_qdr=all&filter=0&hl=ja&lr=lang_vi&q=Lê+Công+Vinh&safe=off&tbs=lr:lang_1vi&start="
 
   # 0から10刻みで990まで，pagenum を増加させて URL を生成
   # 生成した URL に対してクロールを実行

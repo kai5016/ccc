@@ -31,12 +31,12 @@ end
 class Crawler
   log = Logger.new("crawler.log")
   log.progname = $PROGRAM_NAME
-  log.level = Logger::ERROR
-  
+  log.level = Logger::DEBUG
+
   # anemone に渡すオプション
   opts = {
     :skip_query_strings => true,
-    :depth_limit => 1,
+    :depth_limit => 2,
   }
 
   fetch_url_dao = FetchUrlDao.new(log)
@@ -50,21 +50,25 @@ class Crawler
     Anemone.crawl(current_url, opts) do |anemone|
       anemone.storage = Anemone::Storage.MongoDB
       anemone.on_every_page do |page|
-        if fetch_url_dao.skip?(page.url.to_s) then
-          next
+        begin
+          log.info "Page[#{page.url}] の抽出をします．"
+          if fetch_url_dao.skip?(page.url.to_s) then
+            next
+          end
+          page_info = scraper.scrape(page)
+          scrape_result_dao.insert_or_update(page_info)
+          fetch_url_dao.skip_or_insert(page.all_links, FetchUrl::OTHER, page.depth + 1)
+          fetch_url_dao.update_status(page_info.url, page.code)
+        rescue BSON::InvalidStringEncoding => ex
+          fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
         end
-        page_info = scraper.scrape(page)
-        scrape_result_dao.insert_or_update(page_info)
-        fetch_url_dao.skip_or_insert(page.all_links, FetchUrl::OTHER, page.depth + 1)
-        fetch_url_dao.update_status(page_info.url, page.code)
       end
-      # このタイミングで current_url は status = 2 (処理終了) でなければおかしい
+      # このタイミングで current_url は status = 1 (処理待ち) ではおかしい
       # もう一度 処理待ちの URLを取得した際に，取得した URL と current_url を比較し，
-      # 処理が無事終了しているかを判断する．
-      # 比較の結果等しければ，status = 3 (異常終了) に更新する
-#      if current_url == fetch_url_list_dao.get_waiting_url
-#        fetch_url_dao.update_status(current_url, FetchUrlListDao::ERROR)
-#      end
+      # 同じ URL が確認できたときは，１つの URL を何度もクロールしようとするので，エラーフィールドに追加する
+      if current_url == fetch_url_dao.get_waiting_url
+        fetch_url_dao.update_error(current_url)
+      end
     end
   end while fetch_url_dao.exist_waiting_url?
 

@@ -13,11 +13,13 @@ class FetchUrl
   # ステータス
   WAIT = 1
   DONE = 2
-  ERROR = 3
-
+  EncodingError = 3
+  UnkownERROR = 9
+    
   field :url
   field :status, :default => WAIT
   field :priority, :default => OTHER
+  field :has_error, :default => false
 end
 
 #= fetch_url_list にアクセスするためのクラス
@@ -38,7 +40,7 @@ class FetchUrlDao
   # DB に接続し ，コレクション "fetch_url_list" オブジェクトを生成する
   MAZ_IP = "168.63.201.238"
   Mongoid.configure  do |conf|
-    conf.master = Mongo::Connection.new("localhost", 27017).db(DB_NAME)
+    conf.master = Mongo::Connection.new("168.63.201.238", 27017).db(DB_NAME)
   end
 
   # 既に登録済みの URL はスキップし，未登録の URL のみインサート．
@@ -76,6 +78,14 @@ class FetchUrlDao
     log.info "URL[#{url}] のステータスを #{status} に更新しました．"
   end
 
+  # Error フィールドを追加する
+  def update_error(url)
+    fetch_url = FetchUrl.where(:url => url).first
+    fetch_url.has_error = true
+    fetch_url.save
+    log.info "URL[#{url}] に\"has_error\" フィールドを追加しました．"
+  end
+
   # 引数の URL がコレクション内に存在しているか
   def exist?(url)
     fetch_url = FetchUrl.where(:url => url).first
@@ -89,10 +99,25 @@ class FetchUrlDao
 
   # status == WAIT のドキュメントの URL フィールドを返す
   def get_waiting_url
-    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).and("priority" => FetchUrl::SEED).first
-    return fetch_url.url if fetch_url != nil
-    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).and("priority" => FetchUrl::OTHER).first
-    return fetch_url.url
+    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
+                         and("priority" => FetchUrl::SEED).first
+    if fetch_url != nil
+      log.debug"URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}"
+      return fetch_url.url
+    end
+    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
+                         and("priority" => FetchUrl::OTHER).
+                         and("has_error" => false).first
+    if fetch_url != nil
+      log.debug "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}, HAS_ERROR#{fetch_url.has_error}"
+      return fetch_url.url if fetch_url != nil
+    end
+    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
+                         and("priority" => FetchUrl::OTHER).first
+    if fetch_url != nil
+      log.debug "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}"
+      return fetch_url.url
+    end
   end
 
   # status == WAIT の条件でドキュメントを取得し，

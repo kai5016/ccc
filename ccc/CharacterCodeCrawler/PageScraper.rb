@@ -40,7 +40,7 @@ class PageScraper
       page_info.title = ""
       page_info.act_charset = ""
       page_info.body = "Failed to extract a body."
-      log.ERROR "#{url} の body は抽出できませんでした．"
+      log.error "#{url} の body は抽出できませんでした．"
     end
     # tag 除去がうまく走らない場合があるのでそれが改善されるまで，body をそのまま格納
     #    page_info.body = extract_text(page.doc)
@@ -57,7 +57,9 @@ class PageScraper
   def scrape_charset(doc)
     doc.xpath("//meta").each { |node|
       charset = node["content"]
-      return charset if charset.include?("charset")
+      if charset
+        return charset if charset.include?("charset")
+      end
     }
     return ""
   end

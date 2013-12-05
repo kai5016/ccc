@@ -16,7 +16,7 @@ class ScrapeResultDao
 
   # DB に接続し ，コレクション "scrape_result" オブジェクトを生成する
   def get_collection
-    connection = Mongo::Connection.new("localhost", 27017)
+    connection = Mongo::Connection.new("168.63.201.238", 27017)
     db = connection.db('character_code_crawler')
     coll = db.collection(COLLECTION_NAME)
   end
@@ -45,14 +45,20 @@ class ScrapeResultDao
   # コレクション "scrape_result"に page_info を挿入
   def insert(coll, page_info)
     log.info "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入します．"
-    doc = {'url' => page_info.url,
-      'title' => page_info.title,
-      'charset' => page_info.charset,
-      'body' => page_info.body,
-      'create_ts' => Time.now,
-      'update_ts' => Time.now}
-    coll.insert(doc)
-    log.info "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入しました．"
+    begin
+      doc = {'url' => page_info.url,
+             'title' => page_info.title,
+             'charset' => page_info.charset,
+             'body' => page_info.body,
+             'create_ts' => Time.now,
+             'update_ts' => Time.now}
+      coll.insert(doc)
+      log.info "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入しました．"
+    rescue BSON::InvalidStringEncoding => ex
+      log.error("URL[#{page_info.url}]の本文抽出中にエコーディングエラーが発生しました．
+                 page_info.charset[#{page_info.charset}]\n#{ex}")
+      raise ex      
+    end
   end
 
   # page_info の内容を更新
