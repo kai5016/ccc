@@ -3,6 +3,14 @@
 require 'logger'
 require 'mongoid'
 
+#= コレクション fetch_urls の定義
+#
+# anemone が抽出したリンク先のリストを fetch_urls で管理する．
+# その際， URL は処理の状況に応じてステータスを属性として持つ
+#== URL のステータス
+#- WAIT: 処理町（初期状態）
+#- SUCCESS: 項目抽出処理の正常終了
+#- ERROR: 項目抽出処理の異常終了
 class FetchUrl
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -17,19 +25,13 @@ class FetchUrl
   UnkownERROR = 9
     
   field :url
+  field :depth
   field :status, :default => WAIT
   field :priority, :default => OTHER
   field :has_error, :default => false
 end
 
-#= fetch_url_list にアクセスするためのクラス
-#
-# anemone が抽出したリンク先のリストを fetch_url_list で管理する．
-# その際， URL は処理の状況に応じてステータスを属性として持つ
-#== URL のステータス
-#- WAIT: 処理町（初期状態）
-#- SUCCESS: 項目抽出処理の正常終了
-#- ERROR: 項目抽出処理の異常終了
+#= fetch_urls にアクセスするためのクラス
 class FetchUrlDao
   DB_NAME = "character_code_crawler"
   def initialize(log = nil)
@@ -102,24 +104,24 @@ class FetchUrlDao
     fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
                          and("priority" => FetchUrl::SEED).first
     if fetch_url != nil
-      log.debug"URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}"
-      return fetch_url.url
+      log.info "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}"
+      return fetch_url
     end
     fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
                          and("priority" => FetchUrl::OTHER).
                          and("has_error" => false).first
     if fetch_url != nil
-      log.debug "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}, HAS_ERROR#{fetch_url.has_error}"
-      return fetch_url.url if fetch_url != nil
+      log.info "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}, HAS_ERROR#{fetch_url.has_error}"
+      return fetch_url
     end
     fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
                          and("priority" => FetchUrl::OTHER).first
     if fetch_url != nil
-      log.debug "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}"
-      return fetch_url.url
+      log.info "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}"
+      return fetch_url
     end
   end
-
+ 
   # status == WAIT の条件でドキュメントを取得し，
   # 処理待ちの URL が存在するかを判断
   def exist_waiting_url?
@@ -143,6 +145,23 @@ class FetchUrlDao
     end
     log.info "URL[#{url}] はステータス[#{status}] で処理されました．"
     return true
+  end
+  
+  # Queue の振る舞いをするためのメソッド
+  def enq(url, depth)
+    insert(url, FetchUrl::WAIT, FetchUrl::OTHER, depth) if !exist?(url)
+  end
+  def deq
+    fetch_url = get_waiting_url
+    return [fetch_url.url, fetch_url.depth]
+  end
+  def empty?
+    exist_waiting_url?
+  end
+  def num_waiting
+    FetchUrl.where("status" => FetchUrl::WAIT).
+             and("priority" => FetchUrl::OTHER).
+             and("has_error" => false).count
   end
 
 end
