@@ -99,27 +99,29 @@ class FetchUrlDao
     return true
   end
 
-  # status == WAIT のドキュメントの URL フィールドを返す
+  # depth の値が最も小さい status == WAIT のドキュメントの URL フィールドを返す
   def get_waiting_url
-    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
-                         and("priority" => FetchUrl::SEED).first
-    if fetch_url != nil
-      log.info "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}"
-      return fetch_url
-    end
-    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
-                         and("priority" => FetchUrl::OTHER).
-                         and("has_error" => false).first
-    if fetch_url != nil
-      log.info "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}, HAS_ERROR#{fetch_url.has_error}"
-      return fetch_url
-    end
-    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
-                         and("priority" => FetchUrl::OTHER).first
-    if fetch_url != nil
-      log.info "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}"
-      return fetch_url
-    end
+    i = 0
+    begin
+      fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
+                           and("depth" => i).first
+      i += 1
+    end while fetch_url
+    log.info "URL[#{fetch_url.url}], DEPTH[#{fetch_url.depth}]"
+    return fetch_url
+#    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
+#                         and("priority" => FetchUrl::OTHER).
+#                         and("has_error" => false).first
+#    if fetch_url != nil
+#      log.info "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}, HAS_ERROR#{fetch_url.has_error}"
+#      return fetch_url
+#    end
+#    fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
+#                         and("priority" => FetchUrl::OTHER).first
+#    if fetch_url != nil
+#      log.info "URL#{fetch_url.url}, PRIORITY#{fetch_url.priority}"
+#      return fetch_url
+#    end
   end
  
   # status == WAIT の条件でドキュメントを取得し，
