@@ -74,7 +74,7 @@ class Crawler
   # anemone に渡すオプション
   opts = {
     :skip_query_strings => true,
-    :depth_limit => 2,
+    :depth_limit => 1,
     :obey_robots_txt => true
   }
 

@@ -22,7 +22,7 @@ class SeedCrawler
   scraper = PageScraper.new
 
   # データの用意
-  key_word = "H%C3%A0+N%E1%BB%99i"
+  key_word = "L%E1%BB%97i"
   seed_url = "https://www.google.co.jp/search?q=" + key_word + 
              "&lr=lang_vi&hl=ja&as_qdr=all&tbs=lr:lang_1vi&prmd=ivnsl&ei=VihuUp3gBMW_kQXZrYCgDA&sa=N#as_qdr=all&filter=0&hl=ja&lr=lang_vi&q=" +
              key_word + "&safe=off&tbs=lr:lang_1vi&start="
