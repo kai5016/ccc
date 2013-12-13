@@ -2,7 +2,7 @@
 
 require 'logger'
 require 'mongo'
-require '.\conf'
+require_relative '.\conf'
 
 #= DB "character_code_crawler" のコレクション "scrape_result" にアクセスするためのクラス
 #

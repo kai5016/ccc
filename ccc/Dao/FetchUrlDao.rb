@@ -2,7 +2,7 @@
 
 require 'logger'
 require 'mongoid'
-require '.\conf'
+require_relative '.\conf'
 
 #= コレクション fetch_urls の定義
 #
