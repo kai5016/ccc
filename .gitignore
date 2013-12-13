@@ -1,2 +1,5 @@
 ccc/CharacterCodeCrawler/PageScraper.rb
 ccc/CharacterCodeCrawler/crawler.log
+ccc/InvestigateCrawledData/crawler.log
+ccc/InvestigateCrawledData/parser.log
+ccc/Dao/conf.rb
