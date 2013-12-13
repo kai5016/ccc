@@ -2,6 +2,7 @@
 
 require 'logger'
 require 'mongo'
+require '.\conf'
 
 #= DB "character_code_crawler" のコレクション "scrape_result" にアクセスするためのクラス
 #
@@ -16,8 +17,8 @@ class ScrapeResultDao
 
   # DB に接続し ，コレクション "scrape_result" オブジェクトを生成する
   def get_collection
-    connection = Mongo::Connection.new("localhost", 27017)
-    db = connection.db('character_code_crawler')
+    connection = Mongo::Connection.new(CONNECT_TO, 27017)
+    db = connection.db(DB_NAME)
     coll = db.collection(COLLECTION_NAME)
   end
 

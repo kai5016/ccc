@@ -2,6 +2,7 @@
 
 require 'logger'
 require 'mongoid'
+require '.\conf'
 
 #= コレクション fetch_urls の定義
 #
@@ -33,16 +34,14 @@ end
 
 #= fetch_urls にアクセスするためのクラス
 class FetchUrlDao
-  DB_NAME = "character_code_crawler"
   def initialize(log = nil)
     @log = log || Logger.new("crawler.log")
   end
   attr_reader :log
 
   # DB に接続し ，コレクション "fetch_url_list" オブジェクトを生成する
-  MAZ_IP = "168.63.201.238"
   Mongoid.configure  do |conf|
-    conf.master = Mongo::Connection.new('localhost', 27017).db(DB_NAME)
+  conf.master = Mongo::Connection.new(CONNECT_TO, 27017).db(DB_NAME)
   end
 
   # 既に登録済みの URL はスキップし，未登録の URL のみインサート．
