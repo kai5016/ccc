@@ -58,7 +58,6 @@ class FetchUrlDao
       insert(link_url, FetchUrl::WAIT, priority, depth)
     }
     log.info "#{list_size} URLs are inserted．"
-    puts "#{list_size} URLs are inserted．"
   end
 
   # fetch_url_list にリンク先のリストをインサートする
@@ -77,7 +76,7 @@ class FetchUrlDao
     fetch_url = FetchUrl.where(:url => url).first
     fetch_url.status = status
     fetch_url.save
-    log.info "URL[#{url}] のステータスを #{status} に更新しました．"
+    log.info "Updated status to STATUS[#{status}]: URL[#{url}]"
   end
 
   # Error フィールドを追加する
@@ -85,17 +84,17 @@ class FetchUrlDao
     fetch_url = FetchUrl.where(:url => url).first
     fetch_url.has_error = true
     fetch_url.save
-    log.info "URL[#{url}] に\"has_error\" フィールドを追加しました．"
+    log.info "URL[#{url}] Add a field \"has_error\""
   end
 
   # 引数の URL がコレクション内に存在しているか
   def exist?(url)
     fetch_url = FetchUrl.where(:url => url).first
     if fetch_url.to_s == "" then
-      log.debug "URL[#{url}] は存在しません．"
+      log.debug "URL[#{url}] is not exits"
       return false
     end
-    log.info "URL[#{url}] は既に存在します．"
+    log.info "URL[#{url}] exits．"
     return true
   end
 
@@ -125,10 +124,10 @@ class FetchUrlDao
   # status == WAIT の条件でドキュメントを取得し，
   # 処理待ちの URL が存在するかを判断
   def exist_waiting_url?
-    log.debug "処理待ち URL があるか確認します．"
+    log.debug "Check waiting url exists"
     fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).first
     if fetch_url == nil then
-      log.info "処理待ちの URL はありません．"
+      log.info "There is no wating URL."
       return false
     end
     return true
@@ -140,10 +139,10 @@ class FetchUrlDao
     return true if fetch_url == nil  
     status = fetch_url.status
     if status == FetchUrl::WAIT
-      log.debug "URL[#{url}] は未処理です．"
+      log.debug "URL[#{url}] is waiting for fetch"
       return false
     end
-    log.info "URL[#{url}] はステータス[#{status}] で処理されました．"
+    log.info "URL[#{url}]'s status is [#{status}] "
     return true
   end
   
