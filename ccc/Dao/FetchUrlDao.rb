@@ -58,7 +58,7 @@ class FetchUrlDao
       insert(link_url, FetchUrl::WAIT, priority, depth)
     }
     log.info "#{list_size} 件のURLをインサートしました．"
-    puts "#{list_size} 件のURLをインサートしました．"
+    puts "#{list_size} URLs are inserted．"
   end
 
   # fetch_url_list にリンク先のリストをインサートする
