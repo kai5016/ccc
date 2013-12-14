@@ -23,6 +23,7 @@ class FetchUrl
   WAIT = 1
   DONE = 2
   EncodingError = 3
+  NONE_VIET_CHAR = 4
   UnkownERROR = 9
     
   field :url
