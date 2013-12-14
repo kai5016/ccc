@@ -51,13 +51,13 @@ class FetchUrlDao
     link_list.each {|link|
       link_url = link.to_s
       if exist?(link_url) then
-        log.debug "URL[#{link_url}] は既にインサート済みなので，スキップします．"
+        log.debug "URL[#{link_url}] is skipped"
         list_size -= 1
         next
       end
       insert(link_url, FetchUrl::WAIT, priority, depth)
     }
-    log.info "#{list_size} 件のURLをインサートしました．"
+    log.info "#{list_size} URLs are inserted．"
     puts "#{list_size} URLs are inserted．"
   end
 
@@ -69,7 +69,7 @@ class FetchUrlDao
                              :status => status,
                              :depth => depth)
     fetch_url.save
-    log.debug "インサート完了"
+    log.debug "Completed."
   end
 
   # ドキュメントのステータスを更新する
