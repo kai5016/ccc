@@ -68,14 +68,13 @@ class ScrapeResultDao
   # update(scrape_result_dao.get_collection, page_info)
   #
   def update(coll, page_info)
-    log.info "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新します．"
-    log.info "@#{COLLECTION_NAME}: Update URL[#{url}]'s result of scraping."
+    log.info "@#{COLLECTION_NAME}: Update URL[#{page_info.url}]'s result of scraping."
     coll.update({"url" => page_info.url},
     {"$set" => {'title' => page_info.title,
       'charset' => page_info.charset,
       'body' => page_info.body,
       'update_ts' => Time.now}})
-    log.info "@#{COLLECTION_NAME}: URL[#{url}]'s result of scraping is updated."
+    log.info "@#{COLLECTION_NAME}: URL[#{page_info.url}]'s result of scraping is updated."
   end
 
   # DB から 全てのドキュメント を取得
