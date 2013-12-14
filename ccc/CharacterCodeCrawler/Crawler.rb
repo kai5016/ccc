@@ -102,9 +102,10 @@ class Crawler
       anemone.storage = Anemone::Storage.MongoDB
       anemone.on_every_page do |page|
         begin
-          current_url = page.url.to_s
-          http_code = page.code
+          current_url = page.url.to_s 
+          http_code = 999
           
+          http_code = page.code if !page.code.nil?    
           log.info "Page[#{current_url}]'s HTTP status code is [#{http_code}]"
           if http_code >= 300
             fetch_url_dao.update_status(current_url, http_code)
