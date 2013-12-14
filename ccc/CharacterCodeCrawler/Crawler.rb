@@ -4,6 +4,7 @@ require 'rubygems'
 require 'logger'
 require 'anemone'
 require '.\PageScraper'
+require '.\VietChar'
 require '..\Dao\FetchUrlDao'
 require '..\Dao\ScrapeResultDao'
 
@@ -11,6 +12,24 @@ require '..\Dao\ScrapeResultDao'
 module Anemone
   def Anemone.crawl_db(fetch_urls_dao, options = {}, &block)
     Core.crawl_db(fetch_urls_dao, options, &block)
+  end
+end
+
+class Anemone::Page
+  # 外部サイトのリンクも抽出する
+  def all_links
+    return @links unless @links.nil?
+    @links = []
+    return @links if !doc
+
+    doc.css('a').each do |a|
+      u = a.attributes['href'].content rescue nil
+      next if u.nil? or u.empty?
+      abs = to_absolute(URI(u)) rescue next
+      @links << abs
+    end
+    @links.uniq!
+    @links
   end
 end
   
@@ -48,10 +67,10 @@ class Anemone::Core
     do_page_blocks page
     page.discard_doc! if @opts[:discard_page_bodies]
 
-    links = links_to_follow page
-    links.each do |link|
-      link_queue.enq(link.to_s, page.depth + 1)
-    end
+#    links = links_to_follow page
+#    links.each do |link|
+#      link_queue.enq(link.to_s, page.depth + 1)
+#    end
     self
   end
 end
@@ -70,7 +89,7 @@ class Crawler
   log = Logger.new("crawler.log")
   log.progname = $PROGRAM_NAME
   log.level = Logger::DEBUG
-
+  
   # anemone に渡すオプション
   opts = {
     :skip_query_strings => true,
@@ -88,12 +107,17 @@ class Crawler
       anemone.storage = Anemone::Storage.MongoDB
       anemone.on_every_page do |page|
         begin
-          log.info "Page[#{page.url}] の抽出をします．"
-          if fetch_url_dao.skip?(page.url.to_s) then
+          current_url = page.url.to_s
+          log.info "Page[#{current_url}] にベトナム語が含まれるかチェックします．"
+          if !VietChar.viet?(page.doc.to_s)
+            log.info "Page[#{current_url}] ベトナム語が見つかりません．[処理終了]"
+            fetch_url_dao.update_status(current_url, FetchUrl::NONE_VIET_CHAR)
             next
-          end
+          end          
+          log.info "Page[#{page.url}] の抽出をします．"
           page_info = scraper.scrape(page)
           scrape_result_dao.insert_or_update(page_info)
+          fetch_url_dao.skip_or_insert(page.all_links, FetchUrl::OTHER, page.depth + 1)
           fetch_url_dao.update_status(page_info.url, page.code)
         rescue BSON::InvalidStringEncoding => ex
           fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
@@ -107,5 +131,5 @@ class Crawler
 #      end
     end
   end while fetch_url_dao.exist_waiting_url?
-
+  
 end
