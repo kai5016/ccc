@@ -21,7 +21,7 @@ class PageScraper
   def scrape(page)
     page_info = PageInfo.new
     url = page.url.to_s
-    log.info "URL[#{url}] のスクレイプ開始"
+    log.info "Start to scrape URL[#{url}]"
 
     page_info.url = url
     page_info.charset = page.content_type.to_s
@@ -40,7 +40,7 @@ class PageScraper
       page_info.title = ""
       page_info.act_charset = ""
       page_info.body = "Failed to extract a body."
-      log.error "#{url} の body は抽出できませんでした．"
+      log.error "URL[#{url}]Failed to extract a body."
     end
     # tag 除去がうまく走らない場合があるのでそれが改善されるまで，body をそのまま格納
     #    page_info.body = extract_text(page.doc)

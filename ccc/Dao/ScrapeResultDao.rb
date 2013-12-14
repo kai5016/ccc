@@ -39,13 +39,13 @@ class ScrapeResultDao
     if doc.to_s == "" then
       return false
     end
-    log.info "URL[#{url}] は既に #{COLLECTION_NAME} に抽出結果が登録されています"
+    log.info "URL[#{url}] already exists in #{COLLECTION_NAME}"
     return true
   end
 
   # コレクション "scrape_result"に page_info を挿入
   def insert(coll, page_info)
-    log.info "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入します．"
+    log.info "@#{COLLECTION_NAME}: Insert scrape_result of URL[#{page_info.url}]"
     begin
       doc = {'url' => page_info.url,
              'title' => page_info.title,
@@ -54,9 +54,9 @@ class ScrapeResultDao
              'create_ts' => Time.now,
              'update_ts' => Time.now}
       coll.insert(doc)
-      log.info "#{COLLECTION_NAME} に URL[#{page_info.url}] の抽出結果を挿入しました．"
+      log.info "@#{COLLECTION_NAME}: Inserted URL[#{page_info.url}]'s result of scraping"
     rescue BSON::InvalidStringEncoding => ex
-      log.error("URL[#{page_info.url}]の本文抽出中にエコーディングエラーが発生しました．
+      log.error("Scraping URL[#{page_info.url}] has an encoding error．
                  page_info.charset[#{page_info.charset}]\n#{ex}")
       raise ex      
     end
@@ -68,13 +68,14 @@ class ScrapeResultDao
   # update(scrape_result_dao.get_collection, page_info)
   #
   def update(coll, page_info)
-    log.debug "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新します．"
+    log.info "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新します．"
+    log.info "@#{COLLECTION_NAME}: Update URL[#{url}]'s result of scraping."
     coll.update({"url" => page_info.url},
     {"$set" => {'title' => page_info.title,
       'charset' => page_info.charset,
       'body' => page_info.body,
       'update_ts' => Time.now}})
-    log.info "#{COLLECTION_NAME} の URL[#{page_info.url}] の抽出結果を更新しました．"
+    log.info "@#{COLLECTION_NAME}: URL[#{url}]'s result of scraping is updated."
   end
 
   # DB から 全てのドキュメント を取得
@@ -89,7 +90,7 @@ class ScrapeResultDao
     coll.update({"url" => url},
     {"$set" => {'normalized_flg' => boolean,
       'update_ts' => Time.now}})
-    log.info "#{COLLECTION_NAME} の URL[#{url}] の正規化フラグを更新しました．"
+    log.info "@#{COLLECTION_NAME}: URL[#{url}] Status normalized_flg is updated."
   end
 
   # normalized_flg に従ってドキュメントを取得する

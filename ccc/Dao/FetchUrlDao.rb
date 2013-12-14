@@ -63,7 +63,7 @@ class FetchUrlDao
 
   # fetch_url_list にリンク先のリストをインサートする
   def insert(url, status = FetchUrl::WAIT, priority = FetchUrl::OTHER, depth = 0)
-    log.info "URL[#{url}] をインサートします．"
+    log.info "Insert a URL[#{url}]."
     fetch_url = FetchUrl.new(:url => url,
                              :priority => priority,
                              :status => status,
