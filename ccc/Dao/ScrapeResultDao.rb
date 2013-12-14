@@ -107,6 +107,6 @@ class ScrapeResultDao
   # url を条件にしてドキュメントを取得する
   def find_by_url(url)
     coll = get_collection
-    docs = coll.find({"url" => url})
+    doc = coll.find_one({"url" => url})
   end
 end
