@@ -66,11 +66,6 @@ class Anemone::Core
     puts "#{page.url} Queue: #{link_queue.num_waiting}" if @opts[:verbose]
     do_page_blocks page
     page.discard_doc! if @opts[:discard_page_bodies]
-
-#    links = links_to_follow page
-#    links.each do |link|
-#      link_queue.enq(link.to_s, page.depth + 1)
-#    end
     self
   end
 end
@@ -113,7 +108,14 @@ class Crawler
             log.info "Page[#{current_url}] ベトナム語が見つかりません．[処理終了]"
             fetch_url_dao.update_status(current_url, FetchUrl::NONE_VIET_CHAR)
             next
-          end          
+          end
+          log.info "Page[#{current_url}] のエンコードをチェックします．"
+          if /.+?(jis|JIS|Jis).*/ === page.content_type.to_s
+            log.info "Page[#{current_url}] shift_jis は処理しません．[処理終了]"
+            fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
+            next
+          end
+          
           log.info "Page[#{page.url}] の抽出をします．"
           page_info = scraper.scrape(page)
           scrape_result_dao.insert_or_update(page_info)
