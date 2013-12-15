@@ -113,11 +113,12 @@ class Crawler
           end
           log.info "Check a content_type of Page[#{current_url}] "
           if /.+?(jis|JIS|Jis).*/ === page.content_type.to_s
-            log.info "Page[#{current_url}] is written shift_jis．[Processing is complete]"
+            log.info "Page[#{current_url}] is written in shift_jis．[Processing is complete]"
             fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
             next
           end
           log.info "Check the contents of Page[#{current_url}] has viet char"
+          log.info "This page's content type is [#{page.content_type}]"
           if !VietChar.viet?(page.doc.to_s)
             log.info "Page[#{current_url}] Viet char was not found. [Processing is complete]"
             fetch_url_dao.update_status(current_url, FetchUrl::NONE_VIET_CHAR)

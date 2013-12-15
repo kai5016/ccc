@@ -58,9 +58,14 @@ module VietChar
     "ỳ" => "%E1%BB%B2", "ỷ" => "%E1%BB%B6", "ỹ" => "%E1%BB%B8", "ý" => "%C3%9D", "ỵ" => "%E1%BB%B4",
   }
   
-  def VietChar.viet?(str)
-    str.gsub!("Tiếng Việt", "")
-    return VIET_REGEXP === str 
+  def VietChar.viet?(doc_str)
+    begin
+      str = doc_str.gsub(/Tiếng Việt/, "")
+      return VIET_REGEXP === str
+    rescue Encoding::CompatibilityError => ex
+      puts "[ERROR] Method <viet?> caused an Error[#{ex}]"
+      raise
+    end
   end
   
 end
