@@ -111,26 +111,33 @@ class Crawler
             fetch_url_dao.update_status(current_url, http_code)
             next
           end
-          log.info "Check the contents of Page[#{current_url}] has viet char"
-          if !VietChar.viet?(page.doc.to_s)
-            log.info "Page[#{current_url}] Viet char was not found. [Processing is complete]"
-            fetch_url_dao.update_status(current_url, FetchUrl::NONE_VIET_CHAR)
-            next
-          end
           log.info "Check a content_type of Page[#{current_url}] "
           if /.+?(jis|JIS|Jis).*/ === page.content_type.to_s
             log.info "Page[#{current_url}] is written shift_jis．[Processing is complete]"
             fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
             next
           end
+          log.info "Check the contents of Page[#{current_url}] has viet char"
+          if !VietChar.viet?(page.doc.to_s)
+            log.info "Page[#{current_url}] Viet char was not found. [Processing is complete]"
+            fetch_url_dao.update_status(current_url, FetchUrl::NONE_VIET_CHAR)
+            next
+          end
+          
           
           log.info "Starts to scrape Page[#{page.url}]"
           page_info = scraper.scrape(page)
           scrape_result_dao.insert_or_update(page_info)
           fetch_url_dao.skip_or_insert(page.all_links, FetchUrl::OTHER, page.depth + 1)
           fetch_url_dao.update_status(page_info.url, http_code)
+
         rescue BSON::InvalidStringEncoding => ex
           fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
+        rescue Encoding::CompatibilityError => ex
+          log.error "[ERROR]#{ex} in URL[#{current_url}]"
+          puts "[ERROR]#{ex} in URL[#{current_url}]"
+          fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
+          next
         end
       end
       # このタイミングで current_url は status = 1 (処理待ち) ではおかしい
