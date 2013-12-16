@@ -137,7 +137,7 @@ class Crawler
         rescue Encoding::CompatibilityError => ex
           log.error "[ERROR]#{ex} in URL[#{current_url}]"
           puts "[ERROR]#{ex} in URL[#{current_url}]"
-          fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
+          fetch_url_dao.update_status(current_url, FetchUrl::EncodingError)
           next
         end
       end
