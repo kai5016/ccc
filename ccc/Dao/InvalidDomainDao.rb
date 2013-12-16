@@ -29,10 +29,10 @@ class InvalidDomainDao
     domain = URI(url).host
     invalid_domain = InvalidDomain.where(:domain => domain).first
     if invalid_domain.nil?
-      log.debug "URL[#{url}] does not exist"
+      log.debug "URL[#{url}] does not exist in invalid_domain"
       return false
     end
-    log.info "URL[#{url}] already exist．"
+    log.info "URL[#{url}] already exist in invalid_domain．"
     return true
   end
 
