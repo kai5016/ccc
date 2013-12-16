@@ -106,7 +106,8 @@ class Crawler
       :depth_limit => 1,
       :obey_robots_txt => true
     }
-
+    
+    current_url = ""
     Anemone.crawl_db(fetch_url_dao, opts) do |anemone|
       anemone.storage = Anemone::Storage.MongoDB
       anemone.on_every_page do |page|
