@@ -117,7 +117,12 @@ class Crawler
 
           page_info = scraper.scrape(page)
           scrape_result_dao.insert_or_update(page_info)
-          fetch_url_dao.skip_or_insert(page.all_links, FetchUrl::OTHER, page.depth + 1)
+          page.all_links.each { |link|
+            url = link.to_s
+            unless invalid_domain_dao.exist?(url)
+              fetch_url_dao.skip_or_insert(url, FetchUrl::OTHER, page.depth + 1)
+            end
+          }
           fetch_url_dao.update_status(page_info.url, page.code)
 
         rescue BSON::InvalidStringEncoding => ex

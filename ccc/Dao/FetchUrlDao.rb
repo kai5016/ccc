@@ -47,18 +47,12 @@ class FetchUrlDao
   end
 
   # 既に登録済みの URL はスキップし，未登録の URL のみインサート．
-  def skip_or_insert(link_list, priority, depth = 0)
-    list_size = link_list.size
-    link_list.each {|link|
-      link_url = link.to_s
-      if exist?(link_url) then
-        log.debug "URL[#{link_url}] is skipped"
-        list_size -= 1
-        next
-      end
-      insert(link_url, FetchUrl::WAIT, priority, depth)
-    }
-    log.info "#{list_size} URLs are inserted．"
+  def skip_or_insert(url, priority, depth = 0)
+    if exist?(url)
+      log.debug "URL[#{url}] is skipped"
+      return
+    end
+    insert(url, FetchUrl::WAIT, priority, depth)
   end
 
   # fetch_url_list にリンク先のリストをインサートする

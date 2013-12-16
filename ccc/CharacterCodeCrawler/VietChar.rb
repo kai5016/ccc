@@ -71,4 +71,4 @@ module VietChar
   
 end
 
-class VietArgumentExceptoin < Exception; end
+class VietArgumentException < Exception; end
