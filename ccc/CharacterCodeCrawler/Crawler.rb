@@ -127,6 +127,11 @@ class Crawler
           puts "[ERROR]#{ex} in URL[#{current_url}]"
           fetch_url_dao.update_status(current_url, FetchUrl::EncodingError)
           next
+        rescue VietArgumentException => ex
+          log.error "[ERROR]#{ex} in URL[#{current_url}]"
+          puts "[ERROR]#{ex} in URL[#{current_url}]"
+          fetch_url_dao.update_status(current_url, FetchUrl::EncodingError)
+          next
         end
       end
     end
@@ -163,7 +168,7 @@ class Crawler
     end
 
     log.info "Check the contents of Page[#{url}] has viet char"
-    if !VietChar.viet?(page.doc.to_s)
+    if !VietChar.viet?(url, page.doc.to_s)
       log.info "Page[#{url}] Viet char was not found. [Processing is complete]"
       fetch_url_dao.update_status(url, FetchUrl::NONE_VIET_CHAR)
       invalid_domain_dao.insert(url)
