@@ -90,11 +90,11 @@ class FetchUrlDao
   # 引数の URL がコレクション内に存在しているか
   def exist?(url)
     fetch_url = FetchUrl.where(:url => url).first
-    if fetch_url.to_s == "" then
-      log.debug "URL[#{url}] is not exits"
+    if fetch_url.nil?
+      log.debug "URL[#{url}] does not exist"
       return false
     end
-    log.info "URL[#{url}] exits．"
+    log.info "URL[#{url}] already exist．"
     return true
   end
 
@@ -124,7 +124,7 @@ class FetchUrlDao
   # status == WAIT の条件でドキュメントを取得し，
   # 処理待ちの URL が存在するかを判断
   def exist_waiting_url?
-    log.debug "Check waiting url exists"
+    log.debug "Check waiting URL exists"
     fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).first
     if fetch_url == nil then
       log.info "There is no wating URL."
