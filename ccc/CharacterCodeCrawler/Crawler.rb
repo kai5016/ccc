@@ -132,13 +132,20 @@ class Crawler
   end
 
   def crawl?(page, fetch_url_dao, invalid_domain_dao)
-    http_code = 999
-    http_code = page.code if !page.code.nil?
     url = page.url.to_s
 
+    content_type = page.content_type
+    log.info "content_type of URL[#{url}] is [#{content_type}]."
+    if content_type.nil? && content_type.include?("1258")
+      log.info "this content_type is Vietnamese[#{content_type}]."
+      return true
+    end
+    
     log.info "Check the domain of URL[#{url}] is valid"
     return false if invalid_domain_dao.exist?(url)
 
+    http_code = 999
+    http_code = page.code if !page.code.nil?
     log.info "Page[#{url}]'s HTTP status code is [#{http_code}]"
     if http_code >= 300
       fetch_url_dao.update_status(url, http_code)
