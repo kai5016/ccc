@@ -7,6 +7,7 @@ require '.\PageScraper'
 require '.\VietChar'
 require '..\Dao\FetchUrlDao'
 require '..\Dao\ScrapeResultDao'
+require '..\Dao\InvalidDomainDao'
 
 #-- anemone の機能拡張
 module Anemone
@@ -32,7 +33,7 @@ class Anemone::Page
     @links
   end
 end
-  
+
 class Anemone::Core
   def initialize(fetch_urls_dao, opts = {})
     @tentacles = []
@@ -72,65 +73,51 @@ end
 
 class Anemone::Tentacle
   def run_db
-      link, depth = @link_queue.deq
+    link, depth = @link_queue.deq
 
-      @http.fetch_pages(link).each { |page| @page_queue << page }
-      delay
+    @http.fetch_pages(link).each { |page| @page_queue << page }
+    delay
   end
 end
 
 #-- anemone クローラー実行クラス
 class Crawler
-  log = Logger.new("crawler.log")
-  log.progname = $PROGRAM_NAME
-  log.level = Logger::DEBUG
+  def initialize(log = nil)
+    @log = log || Logger.new("crawler.log")
+  end
+  attr_reader :log
   
-  # anemone に渡すオプション
-  opts = {
-    :skip_query_strings => true,
-    :depth_limit => 1,
-    :obey_robots_txt => true
-  }
+  def crawl
+    fetch_url_dao = FetchUrlDao.new(@log)
+    scrape_result_dao = ScrapeResultDao.new(@log)
+    invalid_domain_dao = InvalidDomainDao.new(@log)
+    scraper = PageScraper.new(@log)
+    
+    # クロール  実行部分
+    begin
+      run(fetch_url_dao, scrape_result_dao, invalid_domain_dao, scraper)
+    end while fetch_url_dao.exist_waiting_url?
+  end
+  
+  def run(fetch_url_dao, scrape_result_dao, invalid_domain_dao, scraper)
+    # anemone に渡すオプション
+    opts = {
+      :skip_query_strings => true,
+      :depth_limit => 1,
+      :obey_robots_txt => true
+    }
 
-  fetch_url_dao = FetchUrlDao.new(log)
-  scrape_result_dao = ScrapeResultDao.new(log)
-  scraper = PageScraper.new(log)
-
-  # クロール  実行部分
-  begin
     Anemone.crawl_db(fetch_url_dao, opts) do |anemone|
       anemone.storage = Anemone::Storage.MongoDB
       anemone.on_every_page do |page|
         begin
-          current_url = page.url.to_s 
-          http_code = 999
-          
-          http_code = page.code if !page.code.nil?    
-          log.info "Page[#{current_url}]'s HTTP status code is [#{http_code}]"
-          if http_code >= 300
-            fetch_url_dao.update_status(current_url, http_code)
-            next
-          end
-          log.info "Check a content_type of Page[#{current_url}] "
-          if /.+?(jis|JIS|Jis).*/ === page.content_type.to_s
-            log.info "Page[#{current_url}] is written in shift_jis．[Processing is complete]"
-            fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
-            next
-          end
-          log.info "Check the contents of Page[#{current_url}] has viet char"
-          log.info "This page's content type is [#{page.content_type}]"
-          if !VietChar.viet?(page.doc.to_s)
-            log.info "Page[#{current_url}] Viet char was not found. [Processing is complete]"
-            fetch_url_dao.update_status(current_url, FetchUrl::NONE_VIET_CHAR)
-            next
-          end
-          
-          
-          log.info "Starts to scrape Page[#{page.url}]"
+          current_url = page.url.to_s
+          next if !crawl?(page, fetch_url_dao, invalid_domain_dao)
+
           page_info = scraper.scrape(page)
           scrape_result_dao.insert_or_update(page_info)
           fetch_url_dao.skip_or_insert(page.all_links, FetchUrl::OTHER, page.depth + 1)
-          fetch_url_dao.update_status(page_info.url, http_code)
+          fetch_url_dao.update_status(page_info.url, page.code)
 
         rescue BSON::InvalidStringEncoding => ex
           fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
@@ -141,13 +128,45 @@ class Crawler
           next
         end
       end
-      # このタイミングで current_url は status = 1 (処理待ち) ではおかしい
-      # もう一度 処理待ちの URLを取得した際に，取得した URL と current_url を比較し，
-      # 同じ URL が確認できたときは，１つの URL を何度もクロールしようとするので，エラーフィールドに追加する
-#      if current_url == fetch_url_dao.get_waiting_url
-#        fetch_url_dao.update_error(current_url)
-#      end
     end
-  end while fetch_url_dao.exist_waiting_url?
-  
+  end
+
+  def crawl?(page, fetch_url_dao, invalid_domain_dao)
+    http_code = 999
+    http_code = page.code if !page.code.nil?
+    url = page.url
+
+    log.info "Check the domain of URL[#{url}] is valid"
+    return false if invalid_domain_dao.exist?(url)
+
+    log.info "Page[#{url}]'s HTTP status code is [#{http_code}]"
+    if http_code >= 300
+      fetch_url_dao.update_status(url, http_code)
+      return false
+    end
+
+    log.info "Check the content_type of this page[#{url}]"
+    if /.+?(jis|JIS|Jis).*/ === page.content_type.to_s
+      log.info "Page[#{url}] is written in shift_jis．[Processing is complete]"
+      fetch_url_dao.update_status(url, FetchUrl::EncodingError)
+      return false
+    end
+
+    log.info "Check the contents of Page[#{url}] has viet char"
+    if !VietChar.viet?(page.doc.to_s)
+      log.info "Page[#{url}] Viet char was not found. [Processing is complete]"
+      fetch_url_dao.update_status(url, FetchUrl::NONE_VIET_CHAR)
+      invalid_domain_dao.insert(url)
+      return false
+    end
+    
+    return true
+  end
 end
+
+log = Logger.new("crawler.log")
+log.progname = $PROGRAM_NAME
+log.level = Logger::DEBUG
+
+crawler = Crawler.new(log)
+crawler.crawl
