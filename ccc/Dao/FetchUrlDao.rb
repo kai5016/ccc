@@ -24,6 +24,7 @@ class FetchUrl
   DONE = 2
   EncodingError = 3
   NONE_VIET_CHAR = 4
+  INVALID_DOMAIN = 5
   UnkownERROR = 9
     
   field :url
