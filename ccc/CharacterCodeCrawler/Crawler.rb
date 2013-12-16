@@ -134,7 +134,7 @@ class Crawler
   def crawl?(page, fetch_url_dao, invalid_domain_dao)
     http_code = 999
     http_code = page.code if !page.code.nil?
-    url = page.url
+    url = page.url.to_s
 
     log.info "Check the domain of URL[#{url}] is valid"
     return false if invalid_domain_dao.exist?(url)
