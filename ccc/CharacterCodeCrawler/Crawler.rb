@@ -129,12 +129,6 @@ class Crawler
           next
         end
       end
-      # このタイミングで current_url は status = 1 (処理待ち) ではおかしい
-      # もう一度 処理待ちの URLを取得した際に，取得した URL と current_url を比較し，
-      # 同じ URL が確認できたときは，１つの URL を何度もクロールしようとするので，エラーフィールドに追加する
-      if current_url == fetch_url_dao.get_waiting_url
-        fetch_url_dao.update_error(current_url)
-      end
     end
   end
 
