@@ -113,7 +113,7 @@ class Crawler
       anemone.on_every_page do |page|
         begin
           current_url = page.url.to_s
-          next if !crawl?(page, fetch_url_dao, invalid_domain_dao)
+          next unless crawl?(page, fetch_url_dao, invalid_domain_dao)
 
           page_info = scraper.scrape(page)
           scrape_result_dao.insert_or_update(page_info)
@@ -149,8 +149,10 @@ class Crawler
     end
     
     log.info "Check the domain of URL[#{url}] is valid"
-    return false if invalid_domain_dao.exist?(url)
-
+    if invalid_domain_dao.exist?(url)
+      fetch_url_dao.update_status(url, FetchUrl::INVALID_DOMAIN)
+      return false      
+    end
     http_code = 999
     http_code = page.code if !page.code.nil?
     log.info "Page[#{url}]'s HTTP status code is [#{http_code}]"
