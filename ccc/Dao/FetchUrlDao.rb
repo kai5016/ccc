@@ -95,13 +95,14 @@ class FetchUrlDao
 
   # depth の値が最も小さい status == WAIT のドキュメントの URL フィールドを返す
   def get_waiting_url
+    log.info "Find a URL status waiting"        
     i = 0
     loop {
-      puts i
       fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
                            and("depth" => i).first
       puts "fetch_url[#{fetch_url}]"
       unless fetch_url.nil?
+        log.info "Found URL[#{fetch_url.url}]"
         return fetch_url
       end
       i += 1
