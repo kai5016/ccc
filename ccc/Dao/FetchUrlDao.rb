@@ -100,7 +100,6 @@ class FetchUrlDao
     loop {
       fetch_url = FetchUrl.where("status" => FetchUrl::WAIT).
                            and("depth" => i).first
-      puts "fetch_url[#{fetch_url}]"
       unless fetch_url.nil?
         log.info "Found URL[#{fetch_url.url}]"
         return fetch_url
