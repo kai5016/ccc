@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'logger'
 require 'anemone'
+require 'parallel'
 require '.\PageScraper'
 require '.\VietChar'
 require '..\Dao\FetchUrlDao'
@@ -58,22 +59,32 @@ class Anemone::Core
   def run_db
     process_options
 
-    link_queue = @fetch_urls_dao
+    dao = @fetch_urls_dao
+    fetch_urls = dao.get
     page_queue = Queue.new
 
-    Anemone::Tentacle.new(link_queue, page_queue, @opts).run_db
-    page = page_queue.deq
-    @pages.touch_key page.url
-    puts "#{page.url} Queue: #{link_queue.num_waiting}" if @opts[:verbose]
-    do_page_blocks page
-    page.discard_doc! if @opts[:discard_page_bodies]
+    Parallel.each(fetch_urls, :in_threads => Parallel.processor_count){|fetch_url|
+#    fetch_urls.each{|fetch_url|
+      Anemone::Tentacle.new(fetch_url, page_queue, @opts).run_db
+      page = page_queue.deq
+      @pages.touch_key page.url
+      do_page_blocks page
+    }
     self
   end
 end
 
 class Anemone::Tentacle
+  def initialize(fetch_url, page_queue, opts = {})
+    @fetch_url = fetch_url
+    @page_queue = page_queue
+    @http = Anemone::HTTP.new(opts)
+    @opts = opts
+  end
+  
   def run_db
-    link, depth = @link_queue.deq
+    link = @fetch_url.url
+    depth = @fetch_url.depth
 
     @http.fetch_pages(link).each { |page| @page_queue << page }
     delay
@@ -117,7 +128,7 @@ class Crawler
 
           page_info = scraper.scrape(page)
           scrape_result_dao.insert_or_update(page_info)
-          page.all_links.each { |link|
+          page.all_links.each {|link|
             url = link.to_s
             unless invalid_domain_dao.exist?(url)
               fetch_url_dao.skip_or_insert(url, FetchUrl::OTHER, page.depth + 1)
@@ -126,16 +137,21 @@ class Crawler
           fetch_url_dao.update_status(page_info.url, page.code)
 
         rescue BSON::InvalidStringEncoding => ex
-          fetch_url_dao.update_status(page_info.url, FetchUrl::EncodingError)
+          fetch_url_dao.update_status(page_info.url, FetchUrl::ENCODING_ERROR)
         rescue Encoding::CompatibilityError => ex
           log.error "[ERROR]#{ex} in URL[#{current_url}]"
           puts "[ERROR]#{ex} in URL[#{current_url}]"
-          fetch_url_dao.update_status(current_url, FetchUrl::EncodingError)
+          fetch_url_dao.update_status(current_url, FetchUrl::ENCODING_ERROR)
           next
         rescue VietArgumentException => ex
           log.error "[ERROR]#{ex} in URL[#{current_url}]"
           puts "[ERROR]#{ex} in URL[#{current_url}]"
-          fetch_url_dao.update_status(current_url, FetchUrl::EncodingError)
+          fetch_url_dao.update_status(current_url, FetchUrl::ENCODING_ERROR)
+          next
+        rescue => ex
+          log.error "[ERROR]#{ex} in URL[#{current_url}]"
+          puts "[ERROR]#{ex} in URL[#{current_url}]"
+          fetch_url_dao.update_status(current_url, FetchUrl::UNKNOWN_ERROR)
           next
         end
       end
@@ -152,17 +168,18 @@ class Crawler
       return true
     end
     
-    log.info "Check the domain of URL[#{url}] is valid"
-    if invalid_domain_dao.exist?(url)
-      fetch_url_dao.update_status(url, FetchUrl::INVALID_DOMAIN)
-      return false      
-    end
     http_code = 999
     http_code = page.code if !page.code.nil?
     log.info "Page[#{url}]'s HTTP status code is [#{http_code}]"
     if http_code >= 300
       fetch_url_dao.update_status(url, http_code)
       return false
+    end
+    
+    log.info "Check the domain of URL[#{url}] is valid"
+    if invalid_domain_dao.exist?(url)
+      fetch_url_dao.update_status(url, FetchUrl::INVALID_DOMAIN)
+      return false      
     end
 
     log.info "Check the content_type of this page[#{url}]"

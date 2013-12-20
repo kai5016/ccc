@@ -40,7 +40,7 @@ class InvalidDomainDao
   def insert(url)
     domain = URI(url).host
     log.info "Insert a URL[#{url}]'s domain[#{domain}]."
-    invalid_domain = InvalidDomain.new(:domain => domain)
+    invalid_domain = InvalidDomain.new(:domain => url)
     invalid_domain.save
     log.debug "Completed."
   end

@@ -22,10 +22,10 @@ class FetchUrl
   # ステータス
   WAIT = 1
   DONE = 2
-  EncodingError = 3
+  ENCODING_ERROR = 3
   NONE_VIET_CHAR = 4
   INVALID_DOMAIN = 5
-  UnkownERROR = 9
+  UNKNOWN_ERROR = 9
     
   field :url
   field :depth
@@ -68,10 +68,15 @@ class FetchUrlDao
 
   # ドキュメントのステータスを更新する
   def update_status(url, status)
+    log.info "Update status to STATUS[#{status}]: URL[#{url}]"
     fetch_url = FetchUrl.where(:url => url).first
+    if fetch_url.nil?
+      log.info "URL[#{url}] was not found."
+    else
     fetch_url.status = status
     fetch_url.save
     log.info "Updated status to STATUS[#{status}]: URL[#{url}]"
+    end
   end
 
   # Error フィールドを追加する
@@ -107,7 +112,22 @@ class FetchUrlDao
       i += 1
     }
   end
- 
+  
+  # status = WAIT のドキュメントの配列を返す
+  # 配列のサイズは limit(num) の num
+  def get
+    log.info "Find a URLs that status waiting"
+    i = 0
+    loop {
+      fetch_urls = FetchUrl.where("status" => FetchUrl::WAIT).
+                            and("depth" => i).limit(5000)
+      unless fetch_urls.size == 0
+        return fetch_urls
+      end
+      i += 1
+    }
+  end
+
   # status == WAIT の条件でドキュメントを取得し，
   # 処理待ちの URL が存在するかを判断
   def exist_waiting_url?
