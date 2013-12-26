@@ -82,6 +82,12 @@ class ScrapeResultDao
     coll = get_collection
     docs = coll.find
   end
+  
+  # DB から 全てのドキュメント を取得
+  def get_document
+    coll = get_collection
+    doc = coll.find_one
+  end
 
   # ドキュメントが正規化されているかのフラグをセットする
   def set_normalized_flg(boolean, url)
