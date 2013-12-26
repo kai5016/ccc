@@ -83,7 +83,7 @@ class ScrapeResultDao
     docs = coll.find
   end
   
-  # DB から 全てのドキュメント を取得
+  # DB からドキュメント を取得
   def get_document
     coll = get_collection
     doc = coll.find_one
